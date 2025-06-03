@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Demandeur - Intervention</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+  <style>
+    body {
+      background: linear-gradient(120deg, #eaf6fb 0%, #f9f9ff 100%);
+      min-height: 100vh;
+      margin: 0;
+      font-size: 1.1em;
+    }
+    .main-container {
+      max-width: 900px;
+      margin: 48px auto 36px auto;
+      background: #fff;
+      border-radius: 28px;
+      box-shadow: 0 8px 40px #85a9cc22, 0 1.5px 7px #b1b1b135;
+      padding: 38px 32px 32px 32px;
+      border: 1.5px solid #ddeeff;
+    }
+    h2 {
+      color: #1779c4;
+      margin-bottom: 18px;
+      letter-spacing: 0.03em;
+      text-align: center;
+    }
+    h3 {
+      margin-top: 36px;
+      color: #3570a7;
+    }
+    .demande {
+      background: #f8faff;
+      margin: 1.1em 0;
+      padding: 1.2em 1em 1em 1em;
+      border-radius: 13px;
+      box-shadow: 0 2px 14px #cce0f377;
+      border-left: 5px solid #99cae3;
+    }
+    form label {
+      font-weight: 500;
+      margin-top: 6px;
+      display: block;
+    }
+    select, input[type="text"], input[type="date"] {
+      width: 100%;
+      margin-bottom: 12px;
+      font-size: 1.08em;
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid #d8e3ec;
+    }
+    button[type="submit"] {
+      background: #48a3dd;
+      color: #fff;
+      padding: 12px 0;
+      width: 100%;
+      font-weight: bold;
+      font-size: 1.15em;
+      border-radius: 12px;
+      border: none;
+      margin-top: 8px;
+      box-shadow: 0 2px 10px #82bddf28;
+      transition: background 0.15s;
+    }
+    button[type="submit"]:hover {
+      background: #3570a7;
+    }
+    @media (max-width: 1020px) {
+      .main-container { max-width: 98vw; padding: 18px 3vw; }
+    }
+  </style>
+</head>
+<body>
+  <div class="main-container">
+    <h2>Créer une demande d'intervention</h2>
+    <form id="demandeForm">
+      <label>Nom du demandeur
+        <input name="nom" placeholder="Nom du demandeur" required>
+      </label>
+      <label>Salle
+        <input name="salle" placeholder="Salle" required>
+      </label>
+      <label>Bâtiment
+        <select name="batiment" required>
+         <option value="">-- Sélectionner le bâtiment --</option>
+          <option>Bâtiment A</option>
+          <option>Bâtiment B</option>
+          <option>Bâtiment C</option>
+          <option>Bâtiment D</option>
+          <option>Bâtiment E</option>
+          <option>Bâtiment F</option>
+          <option>Bâtiment H</option>
+          <option>Bâtiment I</option>
+          <option>cuisine</option>
+          <option>self</option>
+          <option>pavillon</option>
+          <option>Lingerie</option>
+          <option>vestiaires des agents</option>
+          <option>internat F</option>
+          <option>internat H</option>
+        </select>
+      </label>
+      <label>Type de panne
+        <input name="type_panne" placeholder="Type de panne" required>
+      </label>
+      <label>Date de la demande
+        <input name="date" type="date" required>
+      </label>
+      <button type="submit">Envoyer</button>
+    </form>
+    <h3>Mes demandes & suivi</h3>
+    <div id="list"></div>
+  </div>
+  <script>
+    // Renseigner la date automatiquement aujourd'hui
+    document.querySelector('input[name="date"]').valueAsDate = new Date();
+
+    const form = document.getElementById('demandeForm');
+    form.onsubmit = async (e) => {
+      e.preventDefault();
+      const data = Object.fromEntries(new FormData(form));
+      data.statut = "en attente";
+      const res = await fetch("/api/demandes", {
+        method: "POST",
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(data)
+      });
+      form.reset();
+      document.querySelector('input[name="date"]').valueAsDate = new Date();
+      loadDemandes();
+    };
+
+    async function loadDemandes() {
+      const res = await fetch("/api/demandes");
+      const demandes = await res.json();
+      const nom = form.nom.value.trim().toLowerCase();
+      // Affiche bien chaque champ, plus d'undefined
+      document.getElementById('list').innerHTML = demandes
+        .filter(d => (d.nom||'').trim().toLowerCase() === nom && nom.length > 0)
+        .map(d => `
+          <div class="demande">
+            <b>${d.type_panne ? d.type_panne : ''}</b> 
+            (${d.salle ? d.salle : '-'}, ${d.batiment ? d.batiment : '-'})<br>
+            <i>${d.date ? d.date : '-'}</i> — 
+            <span>${d.statut ? d.statut : "en attente"}</span>
+          </div>
+        `).join('') || "<i>Aucune demande pour ce nom.</i>";
+    }
+
+    // Rafraîchir à la saisie du nom
+    form.nom.addEventListener('input', loadDemandes);
+    window.onload = loadDemandes;
+  </script>
+  <script src="footer.js"></script>
+</body>
+</html>

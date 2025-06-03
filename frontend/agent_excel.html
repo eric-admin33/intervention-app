@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agent — Export Excel</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+  <style>
+    body {
+      background: linear-gradient(120deg, #eaf6fb 0%, #f9f9ff 100%);
+      min-height: 100vh; margin: 0; font-size: 1.1em;
+    }
+    .main-container {
+      max-width: 950px; margin: 48px auto 36px auto;
+      background: #fff; border-radius: 28px;
+      box-shadow: 0 8px 40px #85a9cc22, 0 1.5px 7px #b1b1b135;
+      padding: 38px 32px 32px 32px;
+      border: 1.5px solid #ddeeff;
+    }
+    nav { margin-bottom: 32px; text-align: center; }
+    nav a {
+      display: inline-block;
+      padding: 8px 28px;
+      margin: 0 7px;
+      background: #eaf6fb;
+      border-radius: 10px 10px 0 0;
+      color: #1779c4;
+      font-weight: 500;
+      text-decoration: none;
+      transition: background .2s;
+      border-bottom: 2px solid #48a3dd77;
+    }
+    nav a.active, nav a:hover { background: #48a3dd; color: #fff; }
+    table { width: 100%; margin-top: 12px; border-radius: 12px; overflow: hidden; }
+    th, td { padding: 10px 12px; }
+    th { background: #eaf6fb; }
+    button.excel-btn {
+      background: #48a3dd; color: #fff;
+      padding: 10px 30px; border: none;
+      border-radius: 12px; font-size: 1.1em; font-weight: bold;
+      margin: 18px 0 20px 0;
+      box-shadow: 0 2px 10px #82bddf28;
+      transition: background .15s;
+      cursor: pointer;
+    }
+    button.excel-btn:hover { background: #3570a7; }
+    @media (max-width: 1020px) {
+      .main-container { max-width: 98vw; padding: 18px 2vw; }
+    }
+    /* Impression 4 fiches/page */
+    @media print {
+      nav, .excel-btn {
+        display: none !important;
+      }
+      body {
+        background: #fff !important;
+        color: #111 !important;
+      }
+      .main-container {
+        box-shadow: none !important;
+        border: none !important;
+        background: #fff !important;
+      }
+      table {
+        width: 100% !important;
+        background: #fff !important;
+      }
+      thead {
+        display: table-header-group !important;
+      }
+      td, th {
+        font-size: 1.12em !important;
+        background: #fff !important;
+        color: #111 !important;
+        border: none !important;
+      }
+      @page { size: A4 landscape; }
+    }
+  </style>
+</head>
+<body>
+  <div class="main-container">
+    <nav>
+      <a href="agent_excel.html" class="active">Export Excel</a>
+    </nav>
+    <h2>Export des demandes (Excel)</h2>
+    <button class="excel-btn" onclick="window.location.href='/api/export-fiches'">Télécharger Excel</button>
+    <section>
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nom</th>
+            <th>Salle</th>
+            <th>Bâtiment</th>
+            <th>Panne</th>
+            <th>Date</th>
+            <th>Statut</th>
+            <th>Archivée</th>
+          </tr>
+        </thead>
+        <tbody id="agentExcelTbody"></tbody>
+      </table>
+    </section>
+  </div>
+  <script>
+    function afficherOuiNon(v) {
+      if (typeof v === "boolean") return v ? "Oui" : "Non";
+      if (typeof v === "string") return ["oui", "yes", "true", "1"].includes(v.toLowerCase()) ? "Oui" : "Non";
+      return v ? "Oui" : "Non";
+    }
+    function chargerDemandesAgentExcel() {
+      fetch('/api/demandes')
+        .then(res => res.json())
+        .then(liste => {
+          const tbody = document.getElementById('agentExcelTbody');
+          if (!Array.isArray(liste) || !liste.length) {
+            tbody.innerHTML = "<tr><td colspan='8'><em>Aucune fiche trouvée</em></td></tr>";
+            return;
+          }
+          tbody.innerHTML = liste.map(d => `
+            <tr>
+              <td>${d.id ?? ""}</td>
+              <td>${d.nom ?? d.titre ?? ""}</td>
+              <td>${d.salle ?? ""}</td>
+              <td>${d.batiment ?? ""}</td>
+              <td>${d.type_panne ?? d.description ?? ""}</td>
+              <td>${d.date ?? ""}</td>
+              <td>${d.statut ?? d.etat ?? ""}</td>
+              <td>${afficherOuiNon(d.archive)}</td>
+            </tr>
+          `).join('');
+        });
+    }
+    window.onload = chargerDemandesAgentExcel;
+  </script>
+  <script src="footer.js"></script>
+</body>
+</html>

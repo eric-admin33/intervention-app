@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Connexion administrateur</title>
+  <style>
+    body { background:#f3f3f9; font-family:Arial,sans-serif; }
+    .login-box { max-width:340px; margin:80px auto; background:#fff; border-radius:14px; box-shadow:0 4px 30px #0001; padding:32px 26px;}
+    h2 { text-align:center; margin-bottom:26px;}
+    input, button { width:96%; padding:8px 10px; margin-bottom:12px; border-radius:8px; border:1px solid #ccc;}
+    button { background:#48a3dd; color:#fff; font-weight:500; border:none;}
+    .err { color:#c22; margin-top:8px;}
+  </style>
+</head>
+<body>
+  <div class="login-box">
+    <h2>Connexion admin</h2>
+    <form id="loginForm">
+      <input type="text" id="username" placeholder="Identifiant" required value="admin"><br>
+      <input type="password" id="password" placeholder="Mot de passe" required>
+      <button type="submit">Connexion</button>
+    </form>
+    <div class="err" id="erreur"></div>
+  </div>
+  <script>
+    document.getElementById('loginForm').onsubmit = function(e) {
+      e.preventDefault();
+      fetch('/api/login-admin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: document.getElementById('username').value,
+          password: document.getElementById('password').value
+        })
+      }).then(r => r.json()).then(res => {
+        if(res.ok) {
+          location.href = "reglage.html";
+        } else {
+          document.getElementById('erreur').textContent = "Mauvais identifiant ou mot de passe.";
+        }
+      });
+    }
+  </script>
+  <script src="footer.js"></script>
+</body>
+</html>
