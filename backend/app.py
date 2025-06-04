@@ -154,12 +154,7 @@ def update_compte_privileges(compte_id):
     conn.commit()
     conn.close()
     return jsonify({'status': 'updated'})
-
-
-        })
-    else:
-        return jsonify({'ok': False})
-
+ 
 # Petite API d'infos session pour le frontend (utile demandeur.html)
 @app.route('/api/userinfo')
 def api_userinfo():
