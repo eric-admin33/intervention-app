@@ -115,45 +115,62 @@
     <div id="list"></div>
   </div>
   <script>
-    // Renseigner la date automatiquement aujourd'hui
-    document.querySelector('input[name="date"]').valueAsDate = new Date();
+async function setupDemandeFormPrivileges() {
+  // Récupère les privilèges côté serveur pour l'utilisateur connecté
+  const userRes = await fetch("/api/userinfo");
+  const user = await userRes.json();
 
-    const form = document.getElementById('demandeForm');
-    form.onsubmit = async (e) => {
-      e.preventDefault();
-      const data = Object.fromEntries(new FormData(form));
-      data.statut = "en attente";
-      const res = await fetch("/api/demandes", {
-        method: "POST",
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(data)
-      });
-      form.reset();
-      document.querySelector('input[name="date"]').valueAsDate = new Date();
-      loadDemandes();
-    };
+  const nomInput = document.querySelector('input[name="nom"]');
+  const dateInput = document.querySelector('input[name="date"]');
 
-    async function loadDemandes() {
-      const res = await fetch("/api/demandes");
-      const demandes = await res.json();
-      const nom = form.nom.value.trim().toLowerCase();
-      // Affiche bien chaque champ, plus d'undefined
-      document.getElementById('list').innerHTML = demandes
-        .filter(d => (d.nom||'').trim().toLowerCase() === nom && nom.length > 0)
-        .map(d => `
-          <div class="demande">
-            <b>${d.type_panne ? d.type_panne : ''}</b> 
-            (${d.salle ? d.salle : '-'}, ${d.batiment ? d.batiment : '-'})<br>
-            <i>${d.date ? d.date : '-'}</i> — 
-            <span>${d.statut ? d.statut : "en attente"}</span>
-          </div>
-        `).join('') || "<i>Aucune demande pour ce nom.</i>";
-    }
+  if (user.username) {
+    nomInput.value = user.username;
+  }
+  dateInput.valueAsDate = new Date();
 
-    // Rafraîchir à la saisie du nom
-    form.nom.addEventListener('input', loadDemandes);
-    window.onload = loadDemandes;
-  </script>
+  // Applique readonly selon privilèges
+  nomInput.readOnly = !user.canEditName;
+  dateInput.readOnly = !user.canEditDate;
+
+  // Petite couleur pour montrer l'état
+  nomInput.style.background = user.canEditName ? "" : "#eef5fa";
+  dateInput.style.background = user.canEditDate ? "" : "#eef5fa";
+}
+setupDemandeFormPrivileges();
+
+const form = document.getElementById('demandeForm');
+form.onsubmit = async (e) => {
+  e.preventDefault();
+  const data = Object.fromEntries(new FormData(form));
+  data.statut = "en attente";
+  const res = await fetch("/api/demandes", {
+    method: "POST",
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(data)
+  });
+  form.reset();
+  await setupDemandeFormPrivileges();
+  loadDemandes();
+};
+
+async function loadDemandes() {
+  const res = await fetch("/api/demandes");
+  const demandes = await res.json();
+  const nom = form.nom.value.trim().toLowerCase();
+  document.getElementById('list').innerHTML = demandes
+    .filter(d => (d.nom||'').trim().toLowerCase() === nom && nom.length > 0)
+    .map(d => `
+      <div class="demande">
+        <b>${d.type_panne ? d.type_panne : ''}</b> 
+        (${d.salle ? d.salle : '-'}, ${d.batiment ? d.batiment : '-'})<br>
+        <i>${d.date ? d.date : '-'}</i> — 
+        <span>${d.statut ? d.statut : "en attente"}</span>
+      </div>
+    `).join('') || "<i>Aucune demande pour ce nom.</i>";
+}
+form.nom.addEventListener('input', loadDemandes);
+window.onload = loadDemandes;
+</script>
   <script src="footer.js"></script>
 </body>
 </html>
