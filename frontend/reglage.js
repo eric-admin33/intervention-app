@@ -11,12 +11,34 @@ async function loadComptes() {
     row.innerHTML = `
       <b>${u.username}</b>
       <span class="user-role">${u.role}</span>
+      <label style="margin-left: 1em; font-size:0.98em;">
+        <input type="checkbox" ${u.canEditName ? "checked" : ""} data-id="${u.id}" class="priv-edit-name"> Peut modifier le nom
+      </label>
+      <label style="margin-left: 0.6em; font-size:0.98em;">
+        <input type="checkbox" ${u.canEditDate ? "checked" : ""} data-id="${u.id}" class="priv-edit-date"> Peut modifier la date
+      </label>
       <div class="user-actions">
         <button onclick="promptPwChange('${u.username}')">Modifier mot de passe</button>
         ${u.role !== 'admin' ? `<button onclick="deleteUser('${u.id}')">Supprimer</button>` : ''}
       </div>
     `;
     list.appendChild(row);
+  });
+
+  // Listener privilèges inline
+  document.querySelectorAll('.priv-edit-name, .priv-edit-date').forEach(cb => {
+    cb.addEventListener('change', async function() {
+      const id = this.getAttribute('data-id');
+      const row = this.closest('.user-row');
+      const canEditName = row.querySelector('.priv-edit-name').checked;
+      const canEditDate = row.querySelector('.priv-edit-date').checked;
+      await fetch(`/api/comptes/${id}`, {
+        method: 'PUT',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({canEditName, canEditDate})
+      });
+      loadComptes();
+    });
   });
 }
 
@@ -49,11 +71,19 @@ document.getElementById("addUserForm").addEventListener("submit", e => {
   const username = document.getElementById("newUsername").value.trim();
   const password = document.getElementById("newPassword").value;
   const role = document.getElementById("newRole").value;
+  const canEditName = document.getElementById("canEditName").checked;
+  const canEditDate = document.getElementById("canEditDate").checked;
   if (!username || !password || !role) return alert("Champs manquants");
   fetch('/api/comptes', {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username, password, role })
+    body: JSON.stringify({
+      username,
+      password,
+      role,
+      canEditName,
+      canEditDate
+    })
   }).then(r => {
     if (r.ok) {
       loadComptes();
@@ -63,7 +93,8 @@ document.getElementById("addUserForm").addEventListener("submit", e => {
     }
   });
 });
-// frontend/footer.js
+
+// Footer comme avant
 (function(){
   const style = document.createElement('style');
   style.innerHTML = `
