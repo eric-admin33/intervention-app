@@ -135,7 +135,12 @@ def verif_login():
             'role': row[1],
             'canEditName': bool(row[2]),
             'canEditDate': bool(row[3])
-            @app.route('/api/comptes/<int:compte_id>', methods=['PUT', 'PATCH'])
+        })
+    else:
+        return jsonify({'ok': False})
+
+# 👇 Cette fonction doit être en dehors du précédent jsonify
+@app.route('/api/comptes/<int:compte_id>', methods=['PUT', 'PATCH'])
 def update_compte_privileges(compte_id):
     data = request.json
     can_edit_name = int(data.get('canEditName', False))
@@ -149,6 +154,7 @@ def update_compte_privileges(compte_id):
     conn.commit()
     conn.close()
     return jsonify({'status': 'updated'})
+
 
         })
     else:
