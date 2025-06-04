@@ -20,7 +20,7 @@ if not os.path.exists(ARCHIVES_DIR):
 DB_PATH = os.path.join(os.path.dirname(__file__), 'site-maintenance.db')
 DATA_FILE = os.path.join(os.path.dirname(__file__), "demandes.json")
 
-# --- INITIALISATION SQLITE ---
+# --- INITIALISATION SQLITE & MIGRATION DOUCE ---
 def init_db():
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
@@ -32,6 +32,16 @@ def init_db():
             role TEXT
         )
     ''')
+    # Ajoute les colonnes privilèges si absentes
+    try:
+        c.execute("ALTER TABLE comptes ADD COLUMN can_edit_name INTEGER DEFAULT 0")
+    except sqlite3.OperationalError:
+        pass
+    try:
+        c.execute("ALTER TABLE comptes ADD COLUMN can_edit_date INTEGER DEFAULT 0")
+    except sqlite3.OperationalError:
+        pass
+
     c.execute('''
         CREATE TABLE IF NOT EXISTS fiches (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -48,45 +58,19 @@ def init_db():
 
 init_db()
 
-# ========== LOGIN & ADMIN PROTECTION ==========
-@app.route('/api/login-admin', methods=['POST'])
-def login_admin():
-    data = request.get_json()
-    username = data.get("username")
-    password = data.get("password")
-    conn = sqlite3.connect(DB_PATH)
-    c = conn.cursor()
-    c.execute("SELECT password, role FROM comptes WHERE username=?", (username,))
-    row = c.fetchone()
-    conn.close()
-    if row and check_password_hash(row[0], password) and row[1] == 'admin':
-        session["is_admin"] = True
-        return jsonify({"ok": True})
-    else:
-        return jsonify({"ok": False}), 401
-
-@app.route('/api/check-admin')
-def check_admin():
-    return jsonify({"ok": bool(session.get("is_admin"))})
-
-@app.route('/api/logout-admin')
-def logout_admin():
-    session.pop("is_admin", None)
-    return jsonify({"ok": True})
-
-@app.route('/reglage.html')
-def reglage():
-    if not session.get("is_admin"):
-        return app.send_static_file("login_admin.html")
-    return app.send_static_file("reglage.html")
-
 # ========== COMPTES ==========
 @app.route('/api/comptes', methods=['GET'])
 def get_comptes():
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
-    c.execute('SELECT id, username, role FROM comptes')
-    comptes = [{'id': row[0], 'username': row[1], 'role': row[2]} for row in c.fetchall()]
+    c.execute('SELECT id, username, role, can_edit_name, can_edit_date FROM comptes')
+    comptes = [{
+        'id': row[0],
+        'username': row[1],
+        'role': row[2],
+        'canEditName': bool(row[3]),
+        'canEditDate': bool(row[4])
+    } for row in c.fetchall()]
     conn.close()
     return jsonify(comptes)
 
@@ -94,10 +78,15 @@ def get_comptes():
 def add_compte():
     data = request.json
     hashed_pw = generate_password_hash(data['password'])
+    can_edit_name = int(data.get('canEditName', False))
+    can_edit_date = int(data.get('canEditDate', False))
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     try:
-        c.execute('INSERT INTO comptes (username, password, role) VALUES (?, ?, ?)', (data['username'], hashed_pw, data['role']))
+        c.execute(
+            'INSERT INTO comptes (username, password, role, can_edit_name, can_edit_date) VALUES (?, ?, ?, ?, ?)',
+            (data['username'], hashed_pw, data['role'], can_edit_name, can_edit_date)
+        )
         conn.commit()
     except sqlite3.IntegrityError:
         conn.close()
@@ -133,13 +122,80 @@ def verif_login():
     password = data.get('password')
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
-    c.execute('SELECT password FROM comptes WHERE username=?', (username,))
+    c.execute('SELECT password, role, can_edit_name, can_edit_date FROM comptes WHERE username=?', (username,))
     row = c.fetchone()
     conn.close()
     if row and check_password_hash(row[0], password):
-        return jsonify({'ok': True})
+        session['username'] = username
+        session['role'] = row[1]
+        session['canEditName'] = bool(row[2])
+        session['canEditDate'] = bool(row[3])
+        return jsonify({
+            'ok': True,
+            'role': row[1],
+            'canEditName': bool(row[2]),
+            'canEditDate': bool(row[3])
+            @app.route('/api/comptes/<int:compte_id>', methods=['PUT', 'PATCH'])
+def update_compte_privileges(compte_id):
+    data = request.json
+    can_edit_name = int(data.get('canEditName', False))
+    can_edit_date = int(data.get('canEditDate', False))
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute(
+        "UPDATE comptes SET can_edit_name=?, can_edit_date=? WHERE id=?",
+        (can_edit_name, can_edit_date, compte_id)
+    )
+    conn.commit()
+    conn.close()
+    return jsonify({'status': 'updated'})
+
+        })
     else:
         return jsonify({'ok': False})
+
+# Petite API d'infos session pour le frontend (utile demandeur.html)
+@app.route('/api/userinfo')
+def api_userinfo():
+    return jsonify({
+        'username': session.get('username', ''),
+        'role': session.get('role', ''),
+        'canEditName': session.get('canEditName', False),
+        'canEditDate': session.get('canEditDate', False)
+    })
+
+
+# ========== LOGIN & ADMIN PROTECTION ==========
+@app.route('/api/login-admin', methods=['POST'])
+def login_admin():
+    data = request.get_json()
+    username = data.get("username")
+    password = data.get("password")
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("SELECT password, role FROM comptes WHERE username=?", (username,))
+    row = c.fetchone()
+    conn.close()
+    if row and check_password_hash(row[0], password) and row[1] == 'admin':
+        session["is_admin"] = True
+        return jsonify({"ok": True})
+    else:
+        return jsonify({"ok": False}), 401
+
+@app.route('/api/check-admin')
+def check_admin():
+    return jsonify({"ok": bool(session.get("is_admin"))})
+
+@app.route('/api/logout-admin')
+def logout_admin():
+    session.pop("is_admin", None)
+    return jsonify({"ok": True})
+
+@app.route('/reglage.html')
+def reglage():
+    if not session.get("is_admin"):
+        return app.send_static_file("login_admin.html")
+    return app.send_static_file("reglage.html")
 
 # ========== EXPORT EXCEL ==========
 def load_demandes():
