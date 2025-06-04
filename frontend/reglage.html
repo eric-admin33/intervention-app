@@ -20,19 +20,26 @@
   <div class="admin-panel">
     <h2>Gestion des utilisateurs</h2>
     <div class="user-list" id="userList"></div>
-    <form class="add-user-form" id="addUserForm">
-      <h3>Ajouter un compte</h3>
-      <input type="text" id="newUsername" placeholder="Nom d'utilisateur" required>
-      <input type="password" id="newPassword" placeholder="Mot de passe" required>
-      <select id="newRole" required>
-        <option value="" disabled selected>Rôle...</option>
-        <option value="admin">Admin</option>
-        <option value="superviseur">Superviseur</option>
-        <option value="agent">Agent</option>
-        <option value="demandeur">Demandeur</option>
-      </select>
-      <button type="submit">Créer le compte</button>
-    </form>
+<form class="add-user-form" id="addUserForm">
+  <h3>Ajouter un compte</h3>
+  <input type="text" id="newUsername" placeholder="Nom d'utilisateur" required>
+  <input type="password" id="newPassword" placeholder="Mot de passe" required>
+  <select id="newRole" required>
+    <option value="" disabled selected>Rôle...</option>
+    <option value="admin">Admin</option>
+    <option value="superviseur">Superviseur</option>
+    <option value="agent">Agent</option>
+    <option value="demandeur">Demandeur</option>
+  </select>
+  <br>
+  <label>
+    <input type="checkbox" id="canEditName"> Peut modifier le nom
+  </label>
+  <label>
+    <input type="checkbox" id="canEditDate"> Peut modifier la date
+  </label>
+  <button type="submit">Créer le compte</button>
+</form>
   </div>
  <script src="reglage.js"></script>
 </body>
