@@ -42,6 +42,10 @@ def init_db():
         pass
     try:
         c.execute("ALTER TABLE comptes ADD COLUMN is_root INTEGER DEFAULT 0")
+    try:
+        c.execute("ALTER TABLE comptes ADD COLUMN is_system INTEGER DEFAULT 0")
+    except sqlite3.OperationalError:
+        pass
     except sqlite3.OperationalError:
         pass
 
@@ -65,13 +69,18 @@ def get_comptes():
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     # 👇 Exclure le compte super utilisateur de la liste visible
-    c.execute('SELECT id, username, role, can_edit_name, can_edit_date FROM comptes WHERE is_root != 1 OR is_root IS NULL')
+    c.execute('''
+    SELECT id, username, role, can_edit_name, can_edit_date, is_system
+    FROM comptes
+    WHERE is_root != 1 OR is_root IS NULL
+''')
     comptes = [{
         'id': row[0],
         'username': row[1],
         'role': row[2],
         'canEditName': bool(row[3]),
-        'canEditDate': bool(row[4])
+        'canEditDate': bool(row[4]),
+        'isSystem': bool(row[5])
     } for row in c.fetchall()]
     conn.close()
     return jsonify(comptes)
@@ -114,12 +123,14 @@ def add_compte():
     hashed_pw = generate_password_hash(data['password'])
     can_edit_name = int(data.get('canEditName', False))
     can_edit_date = int(data.get('canEditDate', False))
+    is_system = int(data.get('isSystem', False))
+    is_system = int(data.get('isSystem', False))
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     try:
         c.execute(
-            'INSERT INTO comptes (username, password, role, can_edit_name, can_edit_date) VALUES (?, ?, ?, ?, ?)',
-            (data['username'], hashed_pw, data['role'], can_edit_name, can_edit_date)
+            'INSERT INTO comptes (username, password, role, can_edit_name, can_edit_date, is_system) VALUES (?, ?, ?, ?, ?, ?)',
+            (data['username'], hashed_pw, data['role'], can_edit_name, can_edit_date, is_system)
         )
         conn.commit()
     except sqlite3.IntegrityError:
@@ -131,6 +142,11 @@ def add_compte():
 
 @app.route('/api/comptes/<int:compte_id>', methods=['DELETE'])
 def delete_compte(compte_id):
+    c.execute("SELECT is_system FROM comptes WHERE id=?", (compte_id,))
+    row = c.fetchone()
+    if row and row[0] == 1:
+        conn.close()
+        return jsonify({'error': 'Compte système non supprimable'}), 403
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute('DELETE FROM comptes WHERE id=?', (compte_id,))
@@ -181,11 +197,13 @@ def update_compte_privileges(compte_id):
     data = request.json
     can_edit_name = int(data.get('canEditName', False))
     can_edit_date = int(data.get('canEditDate', False))
+    is_system = int(data.get('isSystem', False))
+    is_system = int(data.get('isSystem', False))
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute(
-        "UPDATE comptes SET can_edit_name=?, can_edit_date=? WHERE id=?",
-        (can_edit_name, can_edit_date, compte_id)
+        "UPDATE comptes SET can_edit_name=?, can_edit_date=?, is_system=? WHERE id=?",
+        (can_edit_name, can_edit_date, is_system, compte_id)
     )
     conn.commit()
     conn.close()
