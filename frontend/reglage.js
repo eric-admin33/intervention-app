@@ -1,3 +1,4 @@
+// frontend/reglage.js
 
 async function loadComptes() {
   const res = await fetch('/api/comptes');
@@ -5,34 +6,26 @@ async function loadComptes() {
   const list = document.getElementById("userList");
   list.innerHTML = "";
   users.forEach(u => {
-    if (u.username === 'admin') return;
     const row = document.createElement("div");
     row.className = "user-row";
     row.innerHTML = `
       <b>${u.username}</b>
       <span class="user-role">${u.role}</span>
-      <div class="user-options" style="display: flex; flex-wrap: wrap; gap: 1em; font-size: 0.95em;">
-        <label>
-          <input type="checkbox" ${u.canEditName ? "checked" : ""} data-id="${u.id}" class="priv-edit-name">
-          Peut modifier le nom
-        </label>
-        <label>
-          <input type="checkbox" ${u.canEditDate ? "checked" : ""} data-id="${u.id}" class="priv-edit-date">
-          Peut modifier la date
-        </label>
-        <label>
-          <input type="checkbox" ${u.isSystem ? "checked" : ""} data-id="${u.id}" class="priv-system" disabled>
-          Compte système
-        </label>
-      </div>
+      <label style="margin-left: 1em; font-size:0.98em;">
+        <input type="checkbox" ${u.canEditName ? "checked" : ""} data-id="${u.id}" class="priv-edit-name"> Peut modifier le nom
+      </label>
+      <label style="margin-left: 0.6em; font-size:0.98em;">
+        <input type="checkbox" ${u.canEditDate ? "checked" : ""} data-id="${u.id}" class="priv-edit-date"> Peut modifier la date
+      </label>
       <div class="user-actions">
         <button onclick="promptPwChange('${u.username}')">Modifier mot de passe</button>
-        ${u.isSystem ? '' : `<button onclick="deleteUser('${u.id}')">Supprimer</button>`}
+        ${u.role !== 'admin' ? `<button onclick="deleteUser('${u.id}')">Supprimer</button>` : ''}
       </div>
     `;
     list.appendChild(row);
   });
 
+  // Listener privilèges inline
   document.querySelectorAll('.priv-edit-name, .priv-edit-date').forEach(cb => {
     cb.addEventListener('change', async function() {
       const id = this.getAttribute('data-id');
@@ -48,3 +41,77 @@ async function loadComptes() {
     });
   });
 }
+
+window.promptPwChange = function(username) {
+  const newPw = prompt(`Nouveau mot de passe pour ${username}:`);
+  if (newPw && newPw.length >= 4) {
+    fetch('/api/change-password', {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, newPassword: newPw })
+    }).then(r => r.json()).then(res => {
+      if (res.status === "ok") alert("Mot de passe modifié.");
+      else alert("Erreur.");
+      loadComptes();
+    });
+  } else if (newPw) {
+    alert("Mot de passe trop court.");
+  }
+};
+
+window.deleteUser = function(id) {
+  if (confirm("Supprimer ce compte ?")) {
+    fetch(`/api/comptes/${id}`, { method: "DELETE" })
+      .then(r => r.json()).then(() => loadComptes());
+  }
+};
+// Footer comme avant
+(function(){
+  const style = document.createElement('style');
+  style.innerHTML = `
+    .site-footer {
+      text-align: center;
+      color: #7c8ead;
+      font-size: 1em;
+      margin: 40px 0 10px 0;
+      padding-bottom: 12px;
+      letter-spacing: 0.02em;
+    }
+    .site-footer a { color: #3f91e5; text-decoration: underline; }
+    .site-footer a:hover { color: #214177; }
+  `;
+  document.head.appendChild(style);
+
+  const footer = document.createElement('footer');
+  footer.className = 'site-footer';
+  footer.innerHTML = `
+    &copy; 2025 Conception : Eric.G pour le Lycée Camille-Jullian, Bordeaux.<br>
+    Tous droits réservés. &nbsp;|&nbsp; 
+    Contact : <a href="mailto:atelier.kju@gmail.com">atelier.kju@gmail.com</a>
+    <br><br>
+  `;
+  const mainWrap = document.querySelector('.main-wrap');
+  if(mainWrap) {
+    mainWrap.insertAdjacentElement('afterend', footer);
+  } else {
+    document.body.appendChild(footer);
+  }
+})();
+
+// Initialisation
+loadComptes();
+// Chargement dynamique des popups
+function ouvrirPopup(nom) {
+  fetch(`popups/${nom}.html`)
+    .then(res => res.text())
+    .then(html => {
+      const popup = document.getElementById("popup");
+      popup.innerHTML = html + '<br><button onclick="fermerPopup()">Fermer</button>';
+      popup.style.display = 'block';
+    });
+}
+
+function fermerPopup() {
+  document.getElementById("popup").style.display = "none";
+}
+
