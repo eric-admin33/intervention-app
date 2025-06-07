@@ -1,0 +1,38 @@
+<div class="popup-purge">
+  <h2>🧹 Sauvegarde & purge de fin d’année</h2>
+  <p>
+    Cette opération va :
+    <ul>
+      <li>📁 Sauvegarder tous les comptes <strong>demandeurs</strong> (hors comptes système) dans un fichier ZIP.</li>
+      <li>🗑️ Supprimer tous ces comptes de la base pour préparer la prochaine importation.</li>
+    </ul>
+  </p>
+  <button id="btnLancerPurge">Lancer la sauvegarde & purge</button>
+  <div id="purgeResultat" style="margin-top: 1em;"></div>
+</div>
+
+<script>
+document.getElementById("btnLancerPurge").addEventListener("click", async () => {
+  if (!confirm("Confirmer la purge et la sauvegarde des comptes demandeurs ?")) return;
+
+  const btn = document.getElementById("btnLancerPurge");
+  btn.disabled = true;
+  btn.innerText = "Traitement en cours...";
+
+  const res = await fetch("/api/purge-demand", { method: "POST" });
+  const result = await res.json();
+  const div = document.getElementById("purgeResultat");
+
+  if (res.ok) {
+    div.innerHTML = `
+      ✅ <strong>${result.sauvegardes}</strong> comptes sauvegardés et supprimés.<br>
+      📦 <a href="${result.url}" download>Télécharger l’archive</a>
+    `;
+  } else {
+    div.innerHTML = `<p style="color:red;">Erreur : ${result.erreur || "inconnue"}</p>`;
+  }
+
+  btn.disabled = false;
+  btn.innerText = "Lancer la sauvegarde & purge";
+});
+</script>

@@ -329,6 +329,15 @@ window.onload = function() {
   logoBloc.style.display = "flex";
 };
 </script>
+<a href="/login_root.html" role="button" class="secondary">Connexion Super Utilisateur</a>
 <script src="footer.js"></script>
+<script>
+document.addEventListener("keydown", function(e) {
+  if (e.ctrlKey && e.altKey && e.key === "R") {
+    window.location.href = "/reglage.html";
+  }
+});
+</script>
+
 </body>
 </html>

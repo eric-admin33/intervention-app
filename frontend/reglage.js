@@ -65,35 +65,6 @@ window.deleteUser = function(id) {
       .then(r => r.json()).then(() => loadComptes());
   }
 };
-
-document.getElementById("addUserForm").addEventListener("submit", e => {
-  e.preventDefault();
-  const username = document.getElementById("newUsername").value.trim();
-  const password = document.getElementById("newPassword").value;
-  const role = document.getElementById("newRole").value;
-  const canEditName = document.getElementById("canEditName").checked;
-  const canEditDate = document.getElementById("canEditDate").checked;
-  if (!username || !password || !role) return alert("Champs manquants");
-  fetch('/api/comptes', {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      username,
-      password,
-      role,
-      canEditName,
-      canEditDate
-    })
-  }).then(r => {
-    if (r.ok) {
-      loadComptes();
-      e.target.reset();
-    } else {
-      alert("Erreur ou doublon !");
-    }
-  });
-});
-
 // Footer comme avant
 (function(){
   const style = document.createElement('style');
@@ -129,3 +100,18 @@ document.getElementById("addUserForm").addEventListener("submit", e => {
 
 // Initialisation
 loadComptes();
+// Chargement dynamique des popups
+function ouvrirPopup(nom) {
+  fetch(`popups/${nom}.html`)
+    .then(res => res.text())
+    .then(html => {
+      const popup = document.getElementById("popup");
+      popup.innerHTML = html + '<br><button onclick="fermerPopup()">Fermer</button>';
+      popup.style.display = 'block';
+    });
+}
+
+function fermerPopup() {
+  document.getElementById("popup").style.display = "none";
+}
+

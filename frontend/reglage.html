@@ -1,46 +1,86 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gestion des comptes - ADMIN</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Réglages</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css" />
   <style>
-    .admin-panel { max-width: 960px; margin: auto; background: #fff; border-radius: 14px; box-shadow: 0 2px 18px #bbb6; padding: 2em 1.6em; }
-    .user-list { margin-bottom: 2em; }
-    .user-row { display: flex; align-items: center; gap: 1em; padding: 7px 0; border-bottom: 1px solid #eee;}
-    .user-row:last-child { border-bottom: none; }
-    .user-role { font-size: 0.98em; color: #444; }
-    .user-actions button { margin-left: 8px;}
-    .add-user-form { margin-top: 2em; }
-    .pw-field { width: 140px;}
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      background: #f5f7fa;
+      margin: 0;
+    }
+    main {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      padding: 1rem;
+    }
+    .pane {
+      flex: 1 1 45%;
+      background: white;
+      padding: 1.2rem;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    .button-grid button {
+      margin-bottom: 0.75rem;
+      width: 100%;
+    }
+    .accounts-list {
+      max-height: 75vh;
+      overflow-y: auto;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      padding: 0.5rem;
+    }
+    @media (max-width: 768px) {
+      main {
+        flex-direction: column;
+      }
+      .pane {
+        flex: 1 1 100%;
+      }
+    }
+    #popup {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: white;
+      z-index: 9999;
+      padding: 2rem;
+      overflow-y: auto;
+    }
   </style>
 </head>
 <body>
-  <div class="admin-panel">
-    <h2>Gestion des utilisateurs</h2>
-    <div class="user-list" id="userList"></div>
-<form class="add-user-form" id="addUserForm">
-  <h3>Ajouter un compte</h3>
-  <input type="text" id="newUsername" placeholder="Nom d'utilisateur" required>
-  <input type="password" id="newPassword" placeholder="Mot de passe" required>
-  <select id="newRole" required>
-    <option value="" disabled selected>Rôle...</option>
-    <option value="admin">Admin</option>
-    <option value="superviseur">Superviseur</option>
-    <option value="agent">Agent</option>
-    <option value="demandeur">Demandeur</option>
-  </select>
-  <br>
-  <label>
-    <input type="checkbox" id="canEditName"> Peut modifier le nom
-  </label>
-  <label>
-    <input type="checkbox" id="canEditDate"> Peut modifier la date
-  </label>
-  <button type="submit">Créer le compte</button>
-</form>
-  </div>
- <script src="reglage.js"></script>
+  <main>
+    <div class="pane">
+      <h3>Gestion des comptes</h3>
+      <div class="button-grid">
+        <button onclick="ouvrirPopup('creer')">➕ Créer un compte</button>
+        <button onclick="ouvrirPopup('modifier')">✏️ Modifier un compte</button>
+        <button onclick="ouvrirPopup('importer')">📂 Importer depuis Pronote</button>
+        <button onclick="ouvrirPopup('purge')">🧹 Sauvegarde & purge fin d’année</button>
+        <button onclick="sauvegarderEtRetour()">💾 Sauvegarder & retour</button>
+      </div>
+    </div>
+
+    <div class="pane">
+      <h3>Comptes existants</h3>
+      <div class="accounts-list" id="listeComptes">
+        Chargement des comptes...
+      </div>
+    </div>
+  </main>
+
+  <!-- Fenêtre popup plein écran -->
+  <div id="popup"></div>
+
+  <script src="reglage.js"></script>
 </body>
 </html>
+
