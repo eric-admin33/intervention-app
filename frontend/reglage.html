@@ -1,86 +1,69 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Réglages</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
   <style>
     body {
       display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-      background: #f5f7fa;
-      margin: 0;
+      flex-direction: row;
+      height: 100vh;
     }
-    main {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 1rem;
-      padding: 1rem;
+    .gauche {
+      width: 30%;
+      padding: 1em;
+      background-color: #f3f6f9;
+      border-right: 2px solid #ccc;
     }
-    .pane {
-      flex: 1 1 45%;
-      background: white;
-      padding: 1.2rem;
-      border-radius: 10px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    }
-    .button-grid button {
-      margin-bottom: 0.75rem;
-      width: 100%;
-    }
-    .accounts-list {
-      max-height: 75vh;
+    .droite {
+      width: 70%;
+      padding: 1em;
       overflow-y: auto;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      padding: 0.5rem;
     }
-    @media (max-width: 768px) {
-      main {
-        flex-direction: column;
-      }
-      .pane {
-        flex: 1 1 100%;
-      }
+    .user-row {
+      margin-bottom: 0.5em;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 0.5em;
     }
-    #popup {
+    .user-actions {
+      margin-top: 0.5em;
+    }
+    .popup {
       display: none;
       position: fixed;
-      inset: 0;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
       background: white;
-      z-index: 9999;
-      padding: 2rem;
+      padding: 2em;
       overflow-y: auto;
+      z-index: 9999;
+    }
+    #btn-admin {
+      background: #e36;
+      color: white;
     }
   </style>
 </head>
 <body>
-  <main>
-    <div class="pane">
-      <h3>Gestion des comptes</h3>
-      <div class="button-grid">
-        <button onclick="ouvrirPopup('creer')">➕ Créer un compte</button>
-        <button onclick="ouvrirPopup('modifier')">✏️ Modifier un compte</button>
-        <button onclick="ouvrirPopup('importer')">📂 Importer depuis Pronote</button>
-        <button onclick="ouvrirPopup('purge')">🧹 Sauvegarde & purge fin d’année</button>
-        <button onclick="sauvegarderEtRetour()">💾 Sauvegarder & retour</button>
-      </div>
-    </div>
+  <div class="gauche">
+    <button onclick="ouvrirPopup('creer')">Créer un compte</button>
+    <button onclick="ouvrirPopup('modifier')">Modifier un compte</button>
+    <button onclick="ouvrirPopup('importer')">Importer depuis Pronote</button>
+    <button onclick="ouvrirPopup('purge')">Sauvegarde & Purge</button>
+    <button onclick="sauvegarderEtRetour()">Sauvegarder & retour</button>
+    <hr>
+    <button id="btn-admin" onclick="ouvrirConnexionAdmin()">Réglage du compte admin</button>
+  </div>
+  <div class="droite">
+    <h3>Comptes existants</h3>
+    <div id="userList"></div>
+  </div>
 
-    <div class="pane">
-      <h3>Comptes existants</h3>
-      <div class="accounts-list" id="listeComptes">
-        Chargement des comptes...
-      </div>
-    </div>
-  </main>
+  <div id="popup" class="popup"></div>
+  <div id="popupAdmin" class="popup"></div>
 
-  <!-- Fenêtre popup plein écran -->
-  <div id="popup"></div>
-
-  <script src="reglage.js"></script>
+  <script src="frontend/reglage.js"></script>
 </body>
 </html>
-
