@@ -3,7 +3,7 @@
 async function loadComptes() {
   const res = await fetch('/api/comptes');
   const users = await res.json();
-  const list = document.getElementById("userList");
+const list = document.getElementById("listeComptes");
   list.innerHTML = "";
   users.forEach(u => {
     const row = document.createElement("div");
