@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>atelier — Fiches en attente</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+  <style>
+    body {
+      background: linear-gradient(120deg, #eaf6fb 0%, #f9f9ff 100%);
+      min-height: 100vh; margin: 0; font-size: 1.1em;
+    }
+    .main-container {
+      max-width: 950px; margin: 48px auto 36px auto;
+      background: #fff; border-radius: 28px;
+      box-shadow: 0 8px 40px #85a9cc22, 0 1.5px 7px #b1b1b135;
+      padding: 38px 32px 32px 32px;
+      border: 1.5px solid #ddeeff;
+    }
+    nav { margin-bottom: 32px; text-align: center; }
+    nav a {
+      display: inline-block;
+      padding: 8px 28px;
+      margin: 0 7px;
+      background: #eaf6fb;
+      border-radius: 10px 10px 0 0;
+      color: #1779c4;
+      font-weight: 500;
+      text-decoration: none;
+      transition: background .2s;
+      border-bottom: 2px solid #48a3dd77;
+    }
+    nav a.active, nav a:hover { background: #48a3dd; color: #fff; }
+    table { width: 100%; margin-top: 12px; border-radius: 12px; overflow: hidden; }
+    th, td { padding: 10px 12px; }
+    th { background: #eaf6fb; }
+    td button {
+      padding: 7px 13px; background: #48a3dd; color: #fff;
+      border: none; border-radius: 8px;
+      cursor: pointer; font-size: 1em;
+      transition: background .18s;
+    }
+    td button:hover { background: #3570a7; }
+    @media (max-width: 1020px) {
+      .main-container { max-width: 98vw; padding: 18px 2vw; }
+    }
+    /* Impression 4 fiches/page */
+    @media print {
+      nav,
+      .print-actions,
+      .main-container > h2,
+      .section-actions,
+      .fiche-actions,
+      #modal-edit-fiche {
+        display: none !important;
+      }
+      body {
+        background: #fff !important;
+        color: #111 !important;
+      }
+      .main-container {
+        box-shadow: none !important;
+        border: none !important;
+        background: #fff !important;
+      }
+      table {
+        width: 100% !important;
+        background: #fff !important;
+      }
+      thead {
+        display: none !important;
+      }
+      tbody {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        width: 100% !important;
+      }
+      tbody tr {
+        page-break-inside: avoid !important;
+        display: inline-block !important;
+        width: 48% !important;
+        margin-bottom: 18px !important;
+        vertical-align: top !important;
+        background: #fff !important;
+        color: #111 !important;
+        border: 1px solid #bbb !important;
+        box-sizing: border-box;
+      }
+      td, th {
+        font-size: 1.12em !important;
+        background: #fff !important;
+        color: #111 !important;
+        border: none !important;
+      }
+      @page { size: A4 landscape; }
+    }
+    /* --------- MOBILE OPTI ----------- */
+    @media (max-width: 700px) {
+      .main-container { padding: 8vw 1vw; border-radius: 10px; }
+      table, thead, tbody, th, td, tr { display: block; width: 100% !important; }
+      thead { display: none; }
+      tr { margin-bottom: 18px; border: 1px solid #eee; border-radius: 8px; background: #fafcff; padding: 8px 0; }
+      td {
+        padding: 8px 12px;
+        text-align: left;
+        border: none;
+        position: relative;
+        font-size: 1em;
+      }
+      td:before {
+        content: attr(data-label);
+        font-weight: bold;
+        color: #3570a7;
+        display: inline-block;
+        width: 44vw;
+        min-width: 110px;
+      }
+      h2 { font-size: 1.2em !important; margin-bottom: 0.8em !important; }
+      nav a { font-size: 1em !important; padding: 7px 4px !important; }
+    }
+    @media (max-width: 500px) {
+      h2, h1 { font-size: 1.08em !important; }
+      nav a { font-size: 0.96em !important; padding: 6px 2px !important; }
+      .main-container { padding: 2vw 1vw !important; }
+    }
+  </style>
+</head>
+<body>
+<script>window.sessionRole = "{{ role }}";</script>
+  <div class="main-container">
+<style>
+.btn-quit {
+  position: absolute;
+  top: 22px;
+  right: 34px;
+  padding: 7px 16px;
+  background: #eaf6fb;
+  color: #3570a7;
+  border: 1.3px solid #93badd;
+  border-radius: 8px;
+  font-size: 1em;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background .17s, color .17s;
+  z-index: 12;
+}
+.btn-quit:hover {
+  background: #3570a7;
+  color: #fff;
+  border-color: #3570a7;
+}
+@media (max-width:700px) {
+  .btn-quit { 
+    top: 12px; 
+    right: 12px; 
+    padding: 6px 12px;
+    font-size: 0.96em;
+  }
+}
+.main-container { position: relative; }
+</style>
+<nav>
+  <a href="atelier_nouvelle.html" class="nav-btn">Nouvelles fiches</a>
+  <a href="atelier_encours.html" class="nav-btn">Fiches en cours</a>
+  <a href="atelier_attente.html" class="nav-btn">Fiches en attente</a>
+  <a href="atelier_excel.html" class="nav-btn">Export Excel</a>
+  <a href="index.html" class="nav-btn quitter-btn">Quitter</a>
+</nav>
+    <h2>Fiches en attente</h2>
+    <div class="print-actions" style="margin-bottom:18px;">
+      <button id="btnPrintMenu" onclick="togglePrintMenu()" style="background:#f7ca18; color:#233; border-radius:9px; padding:10px 20px; font-weight:500;">
+        🖨️ Imprimer
+      </button>
+      <div id="printMenu" style="display:none; position:absolute; background:#fff; border:1.5px solid #ddd; border-radius:12px; box-shadow:0 2px 12px #0001; margin-top:7px; padding:12px 22px; min-width:220px;">
+        <button onclick="imprimerToutesAttente()" style="width:100%; margin-bottom:7px;">Imprimer toutes les en attente (4/page)</button>
+        <button onclick="ouvrirSelectionImpression()" style="width:100%; margin-bottom:7px;">Imprimer fiches sélectionnées (4/page)</button>
+        <button onclick="exporterFiches()">Exporter Excel / PDF</button>
+      </div>
+    </div>
+    <section>
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th><th>Nom</th><th>Salle</th><th>Bâtiment</th>
+            <th>Panne</th><th>Date</th><th>Statut</th><th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="atelierDemandesTbody"></tbody>
+      </table>
+    </section>
+  </div>
+  <script>
+    let fiches = [];
+    function isEnAttente(statut) {
+      statut = (statut || "").toLowerCase();
+      return ["en attente", "attente", "attente devis", "attente entreprise", "en attente devis", "en attente entreprise"].includes(statut);
+    }
+    function chargerDemandesatelier() {
+      fetch('/api/demandes')
+        .then(res => res.json())
+        .then(liste => {
+          fiches = liste.filter(f => isEnAttente(f.statut || f.etat));
+          const tbody = document.getElementById('atelierDemandesTbody');
+          tbody.innerHTML = fiches.map(d => `
+            <tr>
+              <td data-label="ID">${d.id ?? ""}</td>
+              <td data-label="Nom">${d.nom ?? ""}</td>
+              <td data-label="Salle">${d.salle ?? ""}</td>
+              <td data-label="Bâtiment">${d.batiment ?? ""}</td>
+              <td data-label="Panne">${d.type_panne ?? ""}</td>
+              <td data-label="Date">${d.date ?? ""}</td>
+              <td data-label="Statut">${d.statut ?? ""}</td>
+              <td data-label="Action">
+                <button onclick="editerlafiche(${d.id})">Editer</button>
+              </td>
+            </tr>
+          `).join('');
+        });
+    }
+    function traiterDemande(id) {
+      alert("À personnaliser : traitement de la demande " + id);
+    }
+    function editerlafiche(id) {
+      let fiche = fiches.find(f => f.id == id);
+      if (!fiche) return alert("Fiche introuvable !");
+      document.getElementById('edit-id').value = fiche.id;
+      document.getElementById('edit-titre').value = fiche.nom ?? fiche.titre ?? "";
+      document.getElementById('edit-desc').value = fiche.type_panne ?? fiche.description ?? "";
+      document.getElementById('edit-etat').value = fiche.statut ?? fiche.etat ?? "En attente";
+      document.getElementById('modal-edit-fiche').style.display = "flex";
+    }
+    function fermerModaleEdition() {
+      document.getElementById('modal-edit-fiche').style.display = "none";
+    }
+    function togglePrintMenu() {
+      const menu = document.getElementById('printMenu');
+      menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
+      document.addEventListener('click', closePrintMenu, { once: true });
+    }
+    function closePrintMenu(e) {
+      if (!e || !e.target.closest('#btnPrintMenu')) {
+        document.getElementById('printMenu').style.display = 'none';
+      }
+    }
+    function imprimerToutesAttente() {
+      const allRows = Array.from(document.querySelectorAll('tbody tr'));
+      const toHide = allRows.filter(tr =>
+        !isEnAttente(tr.querySelector('td:nth-child(7)').textContent.trim())
+      );
+      toHide.forEach(tr => tr.style.display = 'none');
+      window.onafterprint = () => {
+        allRows.forEach(tr => tr.style.display = '');
+        window.onafterprint = null;
+      };
+      window.print();
+    }
+    function ouvrirSelectionImpression() {
+      let html = '<div style="background:#fff; border-radius:12px; padding:26px; box-shadow:0 4px 18px #2222; min-width:300px; max-width:95vw;">';
+      html += '<h3>Sélectionner les fiches à imprimer</h3>';
+      html += '<form id="formSelectionImpression"><div style="max-height:320px; overflow-y:auto;">';
+      fiches.forEach(fiche => {
+        html += `<label style="display:block; margin:8px 0;">
+          <input type="checkbox" class="fiche-a-imprimer" value="${fiche.id}" checked>
+          <b>[${fiche.statut ?? fiche.etat ?? ''}]</b>
+          ${fiche.nom ?? fiche.titre ?? ''}
+          — ${fiche.type_panne ?? fiche.description ?? ''}
+          | ${fiche.date ?? ''}
+          | Salle: ${fiche.salle ?? ''}
+          | Bat.: ${fiche.batiment ?? ''}
+        </label>`;
+      });
+      html += '</div><br>';
+      html += '<button type="submit" style="margin-right:12px;">Imprimer sélection</button>';
+      html += '<button type="button" onclick="fermerPopupImpression()">Annuler</button>';
+      html += '</form></div>';
+      const popup = document.createElement('div');
+      popup.id = "popup-impression";
+      popup.style = "position:fixed; top:0; left:0; width:100vw; height:100vh; background:#0004; z-index:50000; display:flex; align-items:center; justify-content:center;";
+      popup.innerHTML = html;
+      document.body.appendChild(popup);
+
+      document.getElementById('formSelectionImpression').onsubmit = function(e) {
+        e.preventDefault();
+        let ids = Array.from(document.querySelectorAll('.fiche-a-imprimer:checked')).map(cb => cb.value);
+        document.querySelectorAll('tbody tr').forEach(tr => {
+          let id = tr.querySelector('td').textContent.trim();
+          tr.style.display = ids.includes(id) ? '' : 'none';
+        });
+        fermerPopupImpression();
+        window.onafterprint = () => {
+          document.querySelectorAll('tbody tr').forEach(tr => {
+            tr.style.display = '';
+          });
+          window.onafterprint = null;
+        };
+        window.print();
+      };
+    }
+    function fermerPopupImpression() {
+      const popup = document.getElementById('popup-impression');
+      if (popup) popup.remove();
+    }
+    function exporterFiches() {
+      window.open('/api/export-fiches', '_blank');
+    }
+    document.addEventListener("DOMContentLoaded", function() {
+      chargerDemandesatelier();
+      const form = document.getElementById('form-edit-fiche');
+      if (!form) return;
+      form.onsubmit = function(e) {
+        e.preventDefault();
+        let id = document.getElementById('edit-id').value;
+        let nom = document.getElementById('edit-titre').value;
+        let type_panne = document.getElementById('edit-desc').value;
+        let statut = document.getElementById('edit-etat').value;
+        fetch(`/api/demandes/${id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ nom, type_panne, statut })
+        }).then(() => {
+          fermerModaleEdition();
+          chargerDemandesatelier();
+        });
+      }
+    });
+  </script>
+  <!-- Fenêtre modale d’édition -->
+  <div id="modal-edit-fiche" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:#0006; z-index:10000; align-items:center; justify-content:center;">
+    <div style="background:#fff; border-radius:12px; padding:28px; min-width:260px; max-width:95vw; box-shadow:0 6px 30px #0004; position:relative;">
+      <h2>Éditer la fiche</h2>
+      <form id="form-edit-fiche">
+        <input type="hidden" id="edit-id">
+        <div>
+          <label for="edit-titre">Nom :</label><br>
+          <input type="text" id="edit-titre" required>
+        </div>
+        <div>
+          <label for="edit-desc">Panne :</label><br>
+          <textarea id="edit-desc" rows="3" required></textarea>
+        </div>
+        <div>
+          <label for="edit-etat">Statut :</label><br>
+          <select id="edit-etat">
+            <option>Nouveau</option>
+            <option>En cours</option>
+            <option>Terminé</option>
+            <option>Fini</option>
+            <option>Refusé</option>
+            <option>En attente</option>
+            <option>Attente devis</option>
+            <option>Attente entreprise</option>
+          </select>
+        </div>
+        <br>
+        <button type="submit">Enregistrer</button>
+        <button type="button" onclick="fermerModaleEdition()">Annuler</button>
+      </form>
+    </div>
+  </div>
+  <script src="footer.js"></script>
+  <script>
+let role = window.sessionRole || "demandeur";
+let delai = 300;
+if (role === "admin") delai = 30;
+else if (role === "root") delai = 0;
+let timerInactif;
+function resetInactivite() {
+  clearTimeout(timerInactif);
+  if (delai === 0) return;
+  timerInactif = setTimeout(() => {
+    window.location.href = "index.html";
+  }, delai * 1000);
+}
+["click", "mousemove", "keydown", "scroll"].forEach(e =>
+  window.addEventListener(e, resetInactivite)
+);
+resetInactivite();
+</script>
+<script>
+let role = window.sessionRole || "demandeur";
+let delai = 300;
+if (role === "admin") delai = 30;
+else if (role === "root") delai = 0;
+let timerInactif;
+function resetInactivite() {
+  clearTimeout(timerInactif);
+  if (delai === 0) return;
+  timerInactif = setTimeout(() => {
+    window.location.href = "index.html";
+  }, delai * 1000);
+}
+["click", "mousemove", "keydown", "scroll"].forEach(e =>
+  window.addEventListener(e, resetInactivite)
+);
+resetInactivite();
+</script>
+</body>
+</html>

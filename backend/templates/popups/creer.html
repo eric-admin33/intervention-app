@@ -1,0 +1,46 @@
+<div class="popup-creation">
+  <h2>Création d’un nouveau compte</h2>
+  <form id="formCreerCompte">
+    <label>
+      Nom :
+      <input type="text" name="nom" id="nom" required>
+    </label>
+    <label>
+      Prénom :
+      <input type="text" name="prenom" id="prenom" required>
+    </label>
+    <label>
+      Login généré :
+      <input type="text" name="username" id="username" readonly>
+    </label>
+    <label>
+      Mot de passe :
+      <input type="password" name="password" required>
+    </label>
+    <label>
+      Confirmer mot de passe :
+      <input type="password" name="confirmPassword" required>
+    </label>
+    <label>
+      Rôles :
+      <select name="role" multiple required>
+        <option value="demandeur">Demandeur</option>
+        <option value="atelier">Atelier</option>
+        <option value="superviseur">Superviseur</option>
+      </select>
+    </label>
+    <fieldset>
+      <legend>Options :</legend>
+      <label>
+        <input type="checkbox" name="canEditName"> Autorisé à modifier le nom du demandeur
+      </label>
+      <label>
+        <input type="checkbox" name="canEditDate"> Autorisé à modifier la date
+      </label>
+      <label>
+        <input type="checkbox" name="isSystem"> Compte système (non supprimable)
+      </label>
+    </fieldset>
+    <button type="submit">Sauvegarder</button>
+  </form>
+</div>

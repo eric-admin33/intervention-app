@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Plateforme Intervention - Accueil</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+  <style>
+    body {
+      min-height: 100vh;
+      margin: 0;
+      background: linear-gradient(120deg, #eaf6fb 0%, #f9f9ff 100%);
+      font-size: 1.12em;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .welcome {
+      text-align: center;
+      margin-bottom: 12px;
+      font-size: 1.25em;
+      color: #2e2d53;
+      letter-spacing: 0.02em;
+      font-weight: 500;
+      margin-top: 24px;
+    }
+    .main-wrap {
+      display: flex;
+      gap: 0;
+      background: #fff;
+      border-radius: 22px;
+      box-shadow: 0 4px 32px #aab9c966;
+      max-width: 990px;
+      width: 99vw;
+      min-height: 540px;
+      overflow: hidden;
+      margin-top: 18px;
+      margin-bottom: 60px;
+    }
+    .gauche, .droite {
+      padding: 2.5em 2em;
+      min-width: 320px;
+      flex: 1 1 400px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .gauche {
+      background: linear-gradient(145deg, #BF876A 0%, #fff 90%);
+      color: #fff;
+      align-items: flex-start;
+      border-right: 2px solid #f3f3f3;
+      min-width: 350px;
+      max-width: 420px;
+    }
+    .gauche h1 {
+      font-size: 2em;
+      font-weight: bold;
+      margin-bottom: 1.1em;
+      color: #fff;
+      letter-spacing: 0.03em;
+      text-shadow: 0 2px 6px #bc2e1c20;
+    }
+    .role-btn, .other-btn {
+      width: 100%;
+      margin-bottom: 1.1em;
+      padding: 1.1em 1em;
+      font-size: 1.18em;
+      font-weight: bold;
+      border-radius: 15px;
+      background: #fff;
+      color: #D15C2C;
+      border: 2px solid #D15C2C;
+      box-shadow: 0 2px 8px #b95b5835;
+      transition: background 0.18s, color 0.18s, box-shadow 0.18s;
+      cursor: pointer;
+      text-align: left;
+      display: flex;
+      align-items: center;
+      gap: 0.8em;
+    }
+     .role-btn.selected,
+     .role-btn:hover,
+     .other-btn:hover {
+     background: #BF876A;
+     color: #fff;
+     box-shadow: 0 4px 18px #BF876A33;
+     border: 2px solid #A66D51;
+    }
+    .role-icon {
+      font-size: 1.25em;
+      opacity: 0.92;
+    }
+    .other-btn {
+      color: #273273;
+      border: 2px solid #273273;
+      background: #fafdff;
+      margin-top: 6px;
+      font-size: 1.1em;
+      justify-content: flex-start;
+    }
+    .other-btn .role-icon {
+      color: #3f91e5;
+    }
+    .droite {
+      position: relative;
+      overflow: hidden;
+      background: #fff;
+      justify-content: center;
+      align-items: center;
+      min-width: 320px;
+    }
+    .logo-atelier-bloc {
+      width: 100%;
+      height: 100%;
+      min-height: 340px;
+      min-width: 260px;
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #fff;
+      animation: fadein 0.7s;
+    }
+    .logo-atelier-inside {
+      max-width: 90%;
+      max-height: 90%;
+      object-fit: contain;
+      display: block;
+      margin: auto;
+      border-radius: 18px;
+      box-shadow: 0 1px 10px #bbb7;
+      background: #fff;
+      transition: box-shadow 0.2s;
+    }
+    .logo-atelier-inside:hover {
+      box-shadow: 0 2px 20px #c43d2f33;
+    }
+    .login-card {
+      z-index: 2;
+      position: relative;
+      background: #f6f8fb;
+      border-radius: 16px;
+      box-shadow: 0 1px 8px #aaa4;
+      padding: 2em 1.6em 1.6em 1.6em;
+      min-width: 290px;
+      width: 94%;
+      max-width: 370px;
+      margin: 0 auto;
+      display: none;
+      animation: fadein 0.5s;
+    }
+    .login-card.visible { display: block; }
+    .login-card h2 {
+      color: #c43d2f;
+      text-align: center;
+      font-size: 1.4em;
+      margin-bottom: 1.3em;
+      font-weight: bold;
+    }
+    .login-card label { margin-top: 1em; }
+    .login-card input[type="text"], .login-card input[type="password"] {
+      width: 100%; font-size: 1em; border-radius: 7px; padding: 6px 7px;
+      margin-top: 3px; margin-bottom: 12px;
+    }
+    .login-card button {
+      width: 100%;
+      background: #c43d2f;
+      color: #fff;
+      border: none;
+      padding: 0.9em;
+      border-radius: 10px;
+      font-size: 1.1em;
+      font-weight: bold;
+      margin-top: 1.4em;
+      transition: background 0.2s;
+      cursor: pointer;
+    }
+    .login-card button:hover {
+      background: #ad2727;
+    }
+    @media (max-width: 900px) {
+      .main-wrap { flex-direction: column; min-width: 0; max-width: 99vw;}
+      .gauche, .droite { min-width: 0; max-width: 100vw; padding: 1.7em 6vw;}
+      .logo-atelier-inside { max-width: 70vw; max-height: 40vh;}
+    }
+    @media (max-width: 700px) {
+      .main-wrap { flex-direction: column; margin-bottom: 30px;}
+      .gauche, .droite {
+        max-width: 100vw;
+        min-width: 0;
+        padding: 1.5em 5vw 1.3em 5vw;
+        border-right: none;
+      }
+      .gauche {
+        align-items: center;
+        text-align: center;
+        border-right: none;
+        min-width: 0;
+        max-width: 100vw;
+      }
+      .gauche h1 { font-size: 1.28em; }
+      .role-btn, .other-btn {
+        font-size: 1em;
+        border-radius: 13px;
+        padding: 0.95em 0.7em;
+      }
+      .login-card {
+        min-width: 0; width: 100%; max-width: 98vw; padding: 1em 2vw 1em 2vw;
+      }
+      .logo-atelier-inside { max-width: 90vw; max-height: 32vh;}
+    }
+    @media (max-width: 430px) {
+      .welcome { font-size: 1em; }
+      .gauche, .droite { padding: 0.7em 1vw !important; }
+      .role-btn, .other-btn { font-size: 0.99em; }
+      .login-card h2 { font-size: 1.13em; }
+    }
+    @keyframes fadein { from { opacity: 0; transform: translateY(30px);} to { opacity: 1; transform: none;} }
+  </style>
+</head>
+<body>
+<script>window.sessionRole = "{{ role }}";</script>
+  <div class="welcome">
+    <b>Bienvenue sur la plateforme des interventions techniques du lycée !</b><br>
+    Veuillez choisir votre rôle puis vous connecter.<br>
+<span style="font-size:0.97em; color:#666;">(Demandeur, atelier, ou superviseur)</span>
+  </div>
+  <div class="main-wrap">
+    <div class="gauche">
+      <h1>Choisissez votre accès :</h1>
+      <button class="role-btn" id="demandeurBtn" data-role="demandeur">
+        <span class="role-icon">&#128100;</span> Demandeur
+      </button>
+<button class="role-btn" id="atelierBtn" data-role="atelier">
+        <span class="role-icon">&#128295;</span> Atelier
+      </button>
+      <button class="role-btn" id="superviseurBtn" data-role="superviseur">
+        <span class="role-icon">&#128221;</span> Superviseur
+      </button>
+      <button class="other-btn" onclick="window.location.href='reglage.html'">
+        <span class="role-icon">&#9881;</span> Système
+      </button>
+    </div>
+    <div class="droite">
+      <div class="logo-atelier-bloc" id="logoBloc">
+        <img src="logo-atelier.png" alt="Logo du lycée Atelier" class="logo-atelier-inside">
+      </div>
+      <form class="login-card" id="loginCard" autocomplete="off">
+        <h2 id="titreConnexion">Connexion</h2>
+        <label>
+          Nom d'utilisateur
+          <input type="text" id="login" required autocomplete="username">
+        </label>
+        <label>
+          Mot de passe
+          <input type="password" id="password" required autocomplete="current-password">
+        </label>
+        <button type="submit">Se connecter</button>
+      </form>
+    </div>
+  </div>
+<script>
+let selectedRole = null;
+const roles = {
+  demandeur: document.getElementById("demandeurBtn"),
+atelier: document.getElementById("atelierBtn"),
+  superviseur: document.getElementById("superviseurBtn")
+};
+const loginCard = document.getElementById("loginCard");
+const titreConnexion = document.getElementById("titreConnexion");
+const logoBloc = document.getElementById("logoBloc");
+const loginInput = document.getElementById("login");
+const passwordInput = document.getElementById("password");
+function showLogin(role) {
+  selectedRole = role;
+  for (const k in roles) {
+    roles[k].classList.toggle("selected", k === role);
+  }
+  let titre = "Connexion";
+  if(role === "demandeur") titre = "Connexion Demandeur";
+if(role === "atelier") titre = "Connexion Atelier";
+  if(role === "superviseur") titre = "Connexion Superviseur";
+  titreConnexion.innerText = titre;
+  loginCard.classList.add("visible");
+  logoBloc.style.display = "none";
+  loginInput.value = "";
+  passwordInput.value = "";
+  loginInput.focus();
+}
+roles.demandeur.onclick = ()=>showLogin("demandeur");
+roles.atelier.onclick = ()=>showLogin("atelier");
+roles.superviseur.onclick = ()=>showLogin("superviseur");
+loginCard.onsubmit = async function(e) {
+  e.preventDefault();
+  if (!selectedRole) return alert("Veuillez d'abord choisir un rôle à gauche.");
+  const username = loginInput.value.trim();
+  const password = passwordInput.value;
+  if (!username || !password) return alert("Veuillez renseigner tous les champs.");
+  try {
+    const comptesResponse = await fetch("/api/comptes");
+    if (!comptesResponse.ok) throw new Error("Erreur de serveur");
+    const comptes = await comptesResponse.json();
+    const user = comptes.find(u => u.username === username && u.role === selectedRole);
+    if (!user) return alert("Nom d'utilisateur ou rôle incorrect.");
+const verifResponse = await fetch("/api/login", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ username, password })
+});
+const verif = await verifResponse.json();
+if (verif.ok && verif.role === selectedRole) {
+  localStorage.setItem("username", username);
+  if(selectedRole === "demandeur") window.location = "demandeur.html";
+if(selectedRole === "atelier") window.location = "atelier_nouvelle.html";
+  if(selectedRole === "superviseur") window.location = "superviseur.html";
+} else if (verif.ok) {
+  alert("Le compte n’a pas le bon rôle !");
+} else {
+  alert("Mot de passe incorrect.");
+  passwordInput.value = "";
+  passwordInput.focus();
+}
+
+  } catch (err) {
+    alert("Erreur de connexion au serveur.");
+  }
+};
+window.onload = function() {
+  loginCard.classList.remove("visible");
+  logoBloc.style.display = "flex";
+};
+</script>
+<a href="/login_root.html" role="button" class="secondary">Connexion Super Utilisateur</a>
+<script src="footer.js"></script>
+<script>
+document.addEventListener("keydown", function(e) {
+  if (e.ctrlKey && e.altKey && e.key === "R") {
+    window.location.href = "/reglage.html";
+  }
+});
+</script>
+<script>
+let role = window.sessionRole || "demandeur";
+let delai = 300;
+if (role === "admin") delai = 30;
+else if (role === "root") delai = 0;
+let timerInactif;
+function resetInactivite() {
+  clearTimeout(timerInactif);
+  if (delai === 0) return;
+  timerInactif = setTimeout(() => {
+    window.location.href = "index.html";
+  }, delai * 1000);
+}
+["click", "mousemove", "keydown", "scroll"].forEach(e =>
+  window.addEventListener(e, resetInactivite)
+);
+resetInactivite();
+</script>
+</body>
+</html>
