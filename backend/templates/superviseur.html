@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Superviseur - Suivi & Archivages</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f6f6f9;
+      margin: 0;
+      color: #222;
+    }
+    h1 {
+      color: #273273;
+      text-align: center;
+      margin-bottom: 0.8em;
+      font-size: 2.1em;
+    }
+    .access-btns {
+      display: flex;
+      gap: 22px;
+      justify-content: center;
+      margin: 30px 0 14px 0;
+    }
+    .access-btns button {
+      background: #3f91e5;
+      color: #fff;
+      border: none;
+      border-radius: 24px;
+      padding: 14px 38px;
+      font-size: 1.07em;
+      font-weight: 600;
+      box-shadow: 0 2px 12px #3f91e528;
+      cursor: pointer;
+      transition: background 0.2s;
+      letter-spacing: 0.04em;
+    }
+    .access-btns button:hover { background: #273273; }
+    .container-2col {
+      display: flex;
+      gap: 32px;
+      max-width: 1700px;
+      margin: 0 auto;
+      align-items: flex-start;
+    }
+    .col {
+      background: #fff;
+      border-radius: 22px;
+      box-shadow: 0 3px 34px #aacbe860;
+      padding: 2.2em 1.3em 1.6em 1.3em;
+      flex: 1 1 610px;
+      min-width: 440px;
+      max-width: 900px;
+      margin-bottom: 2em;
+    }
+    .col h2 {
+      font-size: 1.15em;
+      color: #fff;
+      background: #273273;
+      border-radius: 13px;
+      margin-bottom: 22px;
+      padding: 12px 0;
+      width: 100%;
+      font-weight: bold;
+      text-align: center;
+      letter-spacing: 0.03em;
+      box-shadow: 0 3px 14px #2e2d5333;
+      border-bottom: 4px solid #3f91e5;
+      text-shadow: 0 2px 9px #00000012;
+    }
+    table {
+      width: 100%;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 1.5em;
+      font-size: 0.97em;
+    }
+    th, td {
+      padding: 8px 10px;
+      text-align: left;
+      border-bottom: 1px solid #e3e7ef;
+    }
+    th { background: #eaf6fb; }
+    .btn-xs {
+      font-size: 0.93em;
+      padding: 4px 10px;
+      border-radius: 8px;
+      margin: 0 2px 0 0;
+      border: none;
+      cursor: pointer;
+      transition: background .18s;
+      vertical-align: middle;
+    }
+    .btn-xs.edit { background: #ffe08a; color: #1c222c; }
+    .btn-xs.edit:hover { background: #fff1b0; }
+    .btn-xs.archive { background: #3f91e5; color: #fff; }
+    .btn-xs.archive:hover { background: #245b8e; }
+    .btn-xs.del { background: #fdc8c8; color: #a31818; }
+    .btn-xs.del:hover { background: #d22; color: #fff; }
+    .icon-btn {
+      background: none;
+      border: none;
+      font-size: 1.2em;
+      cursor: pointer;
+      margin-right: 8px;
+      vertical-align: middle;
+      padding: 2px 8px;
+      color: #3f91e5;
+    }
+    .icon-btn.edit { color: #e0b800; }
+    .icon-btn.del { color: #d22; }
+    .icon-btn.edit:hover { background: #ffe08a33; }
+    .icon-btn.del:hover { background: #fdc8c833; }
+    #modal-edit-fiche {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: #0007;
+      z-index: 10000;
+      align-items: center;
+      justify-content: center;
+    }
+    #modal-edit-fiche .modale-content {
+      background: #fff;
+      border-radius: 14px;
+      padding: 22px 44px;
+      min-width: 460px;
+      max-width: 700px;
+      width: 100%;
+      box-shadow: 0 6px 30px #0003;
+      position: relative;
+      max-height: 340px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+    }
+    #modal-edit-fiche label {
+      margin-top: 6px;
+      margin-bottom: 3px;
+    }
+    #modal-edit-fiche input,
+    #modal-edit-fiche textarea,
+    #modal-edit-fiche select {
+      width: 98%;
+      margin-bottom: 6px;
+      font-size: 1em;
+    }
+    #modal-edit-fiche button {
+      margin-right: 10px;
+      padding: 7px 18px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+    @media (max-width: 1350px) {
+      .container-2col { flex-direction: column; gap: 18px; }
+      .col { min-width: 97vw; max-width: 99vw; }
+    }
+    /* Impression : A4 paysage et styles tables */
+    @media print {
+      @page { size: A4 landscape; }
+      nav, .print-actions, .main-container > h2, .section-actions,
+      .fiche-actions, #modal-edit-fiche {
+        display: none !important;
+      }
+      body { background: #fff !important; color: #111 !important; }
+      .main-container, table { background: #fff !important; }
+      thead { display: none !important; }
+      tbody {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        width: 100% !important;
+      }
+      tbody tr {
+        page-break-inside: avoid !important;
+        display: inline-block !important;
+        width: 48% !important;
+        margin-bottom: 18px !important;
+        vertical-align: top !important;
+        background: #fff !important;
+        color: #111 !important;
+        border: 1px solid #bbb !important;
+        box-sizing: border-box;
+      }
+      td, th {
+        font-size: 1.12em !important;
+        background: #fff !important;
+        color: #111 !important;
+        border: none !important;
+      }
+    }
+    /* ----- MOBILE OPTI ------ */
+    @media (max-width: 700px) {
+      html, body { font-size: 0.99em !important; }
+      h1 { font-size: 1.1em !important; }
+      .access-btns { flex-direction: column; gap: 11px; }
+      .access-btns button { width: 99%; font-size: 1em !important; padding: 13px 0 !important; }
+      .container-2col { flex-direction: column; gap: 8vw; }
+      .col { min-width: 0; max-width: 99vw; padding: 2vw 1vw !important; }
+      table, thead, tbody, th, td, tr { display: block; width: 100% !important; }
+      thead { display: none; }
+      tr { margin-bottom: 18px; border: 1px solid #eee; border-radius: 8px; background: #fafcff; padding: 8px 0; }
+      td {
+        padding: 8px 12px;
+        text-align: left;
+        border: none;
+        font-size: 1em;
+        position: relative;
+      }
+      td:before {
+        content: attr(data-label);
+        font-weight: bold;
+        color: #3570a7;
+        display: inline-block;
+        width: 44vw;
+        min-width: 110px;
+      }
+      .col h2 { font-size: 1.05em !important; margin-bottom: 0.8em !important; }
+    }
+    @media (max-width: 430px) {
+      html, body { font-size: 0.93em !important; }
+      h1, .col h2 { font-size: 1em !important; }
+      .col { padding: 0.7em 1vw !important; }
+    }
+  </style>
+</head>
+<body><body>
+  <button class="btn-quit" onclick="window.location='index.html'">Quitter</button>
+<script>window.sessionRole = "{{ role }}";</script>
+  <div class="access-btns">
+    <button onclick="filtrerFiches('enattente')">Fiches en attente</button>
+    <button onclick="filtrerFiches('fini')">Fiches finies & refusées</button>
+    <button onclick="window.location='atelier_nouvelle.html'">Accès fiches Atelier</button>
+<button id="openPurgeMenu"
+  style="background:#3f91e5;color:#fff;border:none;border-radius:24px;padding:14px 38px;
+         font-size:1.07em;font-weight:600;box-shadow:0 2px 12px #3f91e528;cursor:pointer;
+         transition:background 0.2s;letter-spacing:0.04em;margin-left:12px;">
+  Purger les fiches
+</button>
+  </div>
+  <h1>Superviseur - Suivi des interventions</h1>
+  <div class="container-2col">
+    <!-- Colonne 1 : Fiches -->
+    <div class="col">
+      <h2>Liste des fiches</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th><th>Nom</th><th>Salle</th><th>Bâtiment</th>
+            <th>Panne</th><th>Date</th><th>Statut</th><th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="ficheTbody"></tbody>
+      </table>
+    </div>
+    <!-- Colonne 2 : Archives -->
+    <div class="col">
+      <h2>Archives</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Fichier ZIP</th><th>Date</th><th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="archiveTbody"></tbody>
+      </table>
+    </div>
+  </div>
+  <!-- MODALE ÉDITION FICHE -->
+  <div id="modal-edit-fiche">
+    <div class="modale-content">
+      <h3>Éditer la fiche</h3>
+      <form id="form-edit-fiche">
+        <input type="hidden" id="edit-id">
+        <label>Nom :<input type="text" id="edit-nom" required></label>
+        <label>Salle :<input type="text" id="edit-salle"></label>
+        <label>Bâtiment :<input type="text" id="edit-bat"></label>
+        <label>Panne :<textarea id="edit-panne" required rows="2"></textarea></label>
+        <label>Date :<input type="text" id="edit-date"></label>
+        <label>Statut :
+          <select id="edit-statut">
+            <option>Nouveau</option>
+            <option>En cours</option>
+            <option>Terminé</option>
+            <option>Fini</option>
+            <option>Refusé</option>
+            <option>En attente</option>
+            <option>Attente devis</option>
+            <option>Attente entreprise</option>
+          </select>
+        </label>
+        <div class="btns">
+          <button type="submit" class="btn-xs edit">Enregistrer</button>
+          <button type="button" onclick="fermerModaleEdition()" class="btn-xs del">Annuler</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <script>
+    let allFiches = [];
+    let ficheEnCours = null;
+    function chargerFiches() {
+      fetch('/api/demandes')
+        .then(r => r.json())
+        .then(liste => {
+          allFiches = liste;
+          afficherFiches('enattente');
+        });
+    }
+
+    function afficherFiches(type) {
+      let fiches;
+      let nonArchive = allFiches.filter(f => !f.archive);
+
+      if (type === 'enattente') {
+        fiches = nonArchive.filter(f =>
+          ['en attente', 'attente', 'attente devis', 'attente entreprise', 'en attente devis', 'en attente entreprise'].includes((f.statut || f.etat || '').toLowerCase())
+        );
+      } else if (type === 'fini') {
+        fiches = nonArchive.filter(f =>
+          ['fini', 'terminé', 'termine', 'refusé', 'refuse'].includes((f.statut || f.etat || '').toLowerCase())
+        );
+      } else {
+        fiches = nonArchive;
+      }
+      const tbody = document.getElementById('ficheTbody');
+      tbody.innerHTML = fiches.map(f => `
+        <tr>
+          <td data-label="ID">${f.id??''}</td>
+          <td data-label="Nom">${f.nom??f.titre??''}</td>
+          <td data-label="Salle">${f.salle??''}</td>
+          <td data-label="Bâtiment">${f.batiment??''}</td>
+          <td data-label="Panne">${f.type_panne??f.description??''}</td>
+          <td data-label="Date">${f.date??''}</td>
+          <td data-label="Statut">${f.statut??f.etat??''}</td>
+          <td data-label="Action">
+            <button class="btn-xs edit" onclick="editFiche(${f.id})" title="Éditer">✏️</button>
+            <button class="btn-xs archive" onclick="archiverFiche(${f.id})" title="Archiver">📦</button>
+            <button class="btn-xs del" onclick="deleteFiche(${f.id})" title="Supprimer">🗑️</button>
+          </td>
+        </tr>
+      `).join('') || "<tr><td colspan='8'><i>Aucune fiche</i></td></tr>";
+    }
+
+    function editFiche(id) {
+      ficheEnCours = allFiches.find(f => f.id == id);
+      if (!ficheEnCours) return alert("Fiche introuvable !");
+      document.getElementById('edit-id').value = ficheEnCours.id;
+      document.getElementById('edit-nom').value = ficheEnCours.nom ?? ficheEnCours.titre ?? '';
+      document.getElementById('edit-salle').value = ficheEnCours.salle ?? '';
+      document.getElementById('edit-bat').value = ficheEnCours.batiment ?? '';
+      document.getElementById('edit-panne').value = ficheEnCours.type_panne ?? ficheEnCours.description ?? '';
+      document.getElementById('edit-date').value = ficheEnCours.date ?? '';
+      document.getElementById('edit-statut').value = ficheEnCours.statut ?? ficheEnCours.etat ?? 'Nouveau';
+      document.getElementById('modal-edit-fiche').style.display = "flex";
+    }
+    function fermerModaleEdition() {
+      document.getElementById('modal-edit-fiche').style.display = "none";
+      ficheEnCours = null;
+    }
+    document.getElementById('form-edit-fiche').onsubmit = function(e) {
+      e.preventDefault();
+      let id = document.getElementById('edit-id').value;
+      let nom = document.getElementById('edit-nom').value;
+      let salle = document.getElementById('edit-salle').value;
+      let batiment = document.getElementById('edit-bat').value;
+      let type_panne = document.getElementById('edit-panne').value;
+      let date = document.getElementById('edit-date').value;
+      let statut = document.getElementById('edit-statut').value;
+      fetch(`/api/demandes/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nom, salle, batiment, type_panne, date, statut })
+      }).then(() => {
+        fermerModaleEdition();
+        chargerFiches();
+      });
+    }
+
+    function chargerArchives() {
+      fetch('/archives/')
+        .then(r => r.json())
+        .then(liste => {
+          const tbody = document.getElementById('archiveTbody');
+          if (!Array.isArray(liste) || !liste.length) {
+            tbody.innerHTML = '<tr><td colspan="3">Aucune archive disponible.</td></tr>';
+            return;
+          }
+          tbody.innerHTML = liste.map(f => `
+            <tr>
+              <td data-label="Fichier ZIP"><a href="/archives/${f}" target="_blank">${f}</a></td>
+              <td data-label="Date">${f.replace(/^.*_(\d{8}_\d{6})\.zip$/, "$1")}</td>
+              <td data-label="Action">
+                <button class="icon-btn edit" onclick="window.open('/archives/${f}', '_blank')" title="Consulter">✏️</button>
+                <button class="icon-btn del" onclick="supprimerArchive('${f}')" title="Supprimer">🗑️</button>
+              </td>
+            </tr>
+          `).join('');
+        });
+    }
+    function archiverFiche(id) {
+      if(confirm("Archiver cette fiche ?")) {
+        fetch('/api/archiver-fiche/' + id, {method:'POST'})
+          .then(r=>r.json())
+          .then(rep=>{
+            if(rep.url) {
+              fetch(`/api/demandes/${id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ archive: true })
+              }).then(() => {
+                alert("Fiche archivée !\nZIP : "+rep.zip);
+                chargerFiches();
+                setTimeout(chargerArchives, 400);
+              });
+            } else alert("Erreur d’archivage");
+          });
+      }
+    }
+    function supprimerArchive(nom) {
+      if (confirm("Supprimer ce fichier archive ?")) {
+        fetch('/archives/' + nom, { method: 'DELETE' })
+          .then(()=>chargerArchives());
+      }
+    }
+    function deleteFiche(id) {
+      if (confirm("Supprimer cette fiche ?")) {
+        fetch('/api/demandes/' + id, {method:'DELETE'})
+          .then(()=>chargerFiches());
+      }
+    }
+    function filtrerFiches(type) { afficherFiches(type);}
+    chargerFiches();
+    chargerArchives();
+  </script>
+  <script src="footer.js"></script>
+  <script>
+let role = window.sessionRole || "demandeur";
+let delai = 300;
+if (role === "admin") delai = 30;
+else if (role === "root") delai = 0;
+let timerInactif;
+function resetInactivite() {
+  clearTimeout(timerInactif);
+  if (delai === 0) return;
+  timerInactif = setTimeout(() => {
+    window.location.href = "index.html";
+  }, delai * 1000);
+}
+["click", "mousemove", "keydown", "scroll"].forEach(e =>
+  window.addEventListener(e, resetInactivite)
+);
+resetInactivite();
+</script>
+<!-- POPUP PURGE FICHES -->
+<div id="purge-modal" style="display:none;
+  position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:1000;
+  background:rgba(0,0,0,0.45);align-items:center;justify-content:center;">
+  <div style="background:#fff;padding:34px 38px 26px 38px;border-radius:22px;
+    box-shadow:0 7px 24px #1234b422;min-width:340px;max-width:97vw;">
+    <h2 style="color:#273273;margin-bottom:24px;text-align:center;">Purger les fiches</h2>
+    <div style="margin-bottom:22px;">
+      <button onclick="purgeToutes()" class="btn-xs archive" style="margin-bottom:9px;">Purger TOUTES les fiches</button>
+      <br>
+      <button onclick="chargerPurgeListe()" class="btn-xs edit">Purger par sélection</button>
+    </div>
+    <div id="purge-list-zone" style="display:none;margin-top:20px;">
+      <b>Sélectionner les fiches à supprimer :</b>
+      <form id="purge-list-form">
+        <div id="purge-list" style="max-height:210px;overflow:auto;margin:12px 0 14px 0;"></div>
+        <button type="submit" class="btn-xs del" style="margin-top:8px;">Supprimer la sélection</button>
+      </form>
+    </div>
+    <button onclick="fermerPurgeModal()" class="btn-xs del" style="margin-top:18px;float:right;">Fermer</button>
+  </div>
+</div>
+<script>
+document.getElementById('openPurgeMenu').onclick = function() {
+  document.getElementById('purge-modal').style.display = 'flex';
+};
+function fermerPurgeModal() {
+  document.getElementById('purge-modal').style.display = 'none';
+  document.getElementById('purge-list-zone').style.display = 'none';
+}
+function purgeToutes() {
+  if(confirm("Confirmer la suppression de TOUTES les fiches ?")) {
+    fetch('/api/demandes', {method:'DELETE'})
+      .then(r=>r.json()).then(rep=>{
+        alert(rep.ok ? "Toutes les fiches ont été supprimées." : (rep.error||"Erreur !"));
+        fermerPurgeModal();
+        chargerFiches && chargerFiches();
+      });
+  }
+}
+function chargerPurgeListe() {
+  fetch('/api/demandes').then(r=>r.json()).then(fiches=>{
+    let html = '';
+    for(const f of fiches)
+      html += `<label><input type="checkbox" name="purge_ids" value="${f.id}"> [${f.id}] ${f.titre||f.nom||''} (${f.statut||''})</label><br>`;
+    document.getElementById('purge-list').innerHTML = html || "<i>Aucune fiche</i>";
+    document.getElementById('purge-list-zone').style.display = '';
+  });
+}
+document.getElementById('purge-list-form').onsubmit = function(e) {
+  e.preventDefault();
+  const ids = Array.from(this.purge_ids).filter(c=>c.checked).map(c=>c.value);
+  if(!ids.length) return alert("Sélectionne au moins une fiche.");
+  if(!confirm("Supprimer définitivement les fiches sélectionnées ?")) return;
+  fetch('/api/demandes/purge', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({ids})
+  }).then(r=>r.json()).then(rep=>{
+    alert(rep.ok ? "Fiches supprimées." : (rep.error||"Erreur"));
+    fermerPurgeModal();
+    chargerFiches && chargerFiches();
+  });
+};
+</script>
+</body>
+</html>
