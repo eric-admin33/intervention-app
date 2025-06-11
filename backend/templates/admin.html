@@ -1,0 +1,109 @@
+<script>window.sessionRole = "{{ role }}";</script>
+<div class="popup-admin">
+ <h2>Connexion admin</h2>
+<form id="loginForm" style="max-width:340px; margin:auto;">
+  <label for="username">Identifiant</label>
+  <input type="text" id="username" placeholder="Identifiant" required value="admin" autocomplete="username">
+
+  <label for="adminPw">Mot de passe</label>
+  <div class="pw-field" style="position:relative;">
+    <input type="password" id="adminPw" required autocomplete="current-password" style="width:100%; padding-right:2.2em;">
+    <button type="button" tabindex="-1"
+      id="togglePwBtn"
+      aria-label="Afficher ou masquer le mot de passe"
+      style="
+        position:absolute;
+        right:0.5em;
+        top:50%;
+        transform:translateY(-50%);
+        background:transparent;
+        border:none;
+        padding:0;
+        margin:0;
+        cursor:pointer;
+        height:1.8em;
+        width:2em;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        opacity:0.8;
+      ">
+      <!-- SVG œil ouvert -->
+      <span class="eye-open" style="display:block;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/>
+          <circle cx="12" cy="12" r="3"/>
+        </svg>
+      </span>
+      <!-- SVG œil fermé/barré -->
+      <span class="eye-closed" style="display:none;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M17.94 17.94A10.94 10.94 0 0 1 12 19C5 19 1 12 1 12a21.8 21.8 0 0 1 5.07-7.07"/>
+          <path d="M9.53 9.53A3.5 3.5 0 0 0 12 15.5c.82 0 1.57-.26 2.18-.7"/>
+          <path d="M3 3l18 18"/>
+        </svg>
+      </span>
+    </button>
+  </div>
+  <button type="submit" style="margin-top:18px;">Connexion</button>
+</form>
+<div class="err" id="erreur"></div>
+  </div>
+  <button type="submit" style="width:100%;margin-top:14px;">Connexion</button>
+</form>
+</div>
+
+<script>
+document.getElementById("toggleAdminPw").onclick = function(e) {
+  e.preventDefault();
+  const input = document.getElementById('adminPw');
+  const eyeOpen = this.querySelector('.eye-open');
+  const eyeClosed = this.querySelector('.eye-closed');
+  if (input.type === 'password') {
+    input.type = 'text';
+    eyeOpen.style.display = 'none';
+    eyeClosed.style.display = '';
+  } else {
+    input.type = 'password';
+    eyeOpen.style.display = '';
+    eyeClosed.style.display = 'none';
+  }
+};
+document.getElementById("adminLoginForm").onsubmit = async (e) => {
+  e.preventDefault();
+  const password = document.getElementById("adminPw").value;
+  const res = await fetch("/api/login-admin", {
+    method: "POST",
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ username: "admin", password })
+  });
+  const data = await res.json();
+  if (data.ok) {
+    alert("Connecté comme admin.");
+    fermerPopup && fermerPopup();
+    setTimeout(() => {
+      fetch("/api/logout-admin").then(() => alert("Déconnecté automatiquement."));
+    }, 30000);
+  } else {
+    alert("Mot de passe incorrect.");
+  }
+};
+
+document.getElementById("togglePwBtn").onclick = function(e) {
+  e.preventDefault();
+  const input = document.getElementById('adminPw');
+  const eyeOpen = this.querySelector('.eye-open');
+  const eyeClosed = this.querySelector('.eye-closed');
+  if (input.type === 'password') {
+    input.type = 'text';
+    eyeOpen.style.display = 'none';
+    eyeClosed.style.display = '';
+  } else {
+    input.type = 'password';
+    eyeOpen.style.display = '';
+    eyeClosed.style.display = 'none';
+  }
+};
+</script>
+</body>
+</html>
