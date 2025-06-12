@@ -18,9 +18,9 @@
   const footer = document.createElement('footer');
   footer.className = 'site-footer';
   footer.innerHTML = `
-    &copy; 2025 Conception : Eric.G pour le Lycée Camille-Jullian, Bordeaux.<br>
+    &copy; 2025 Conception : Eric pour le Lycée Camille-Jullian, Bordeaux.<br>
     Tous droits réservés. &nbsp;|&nbsp; 
-    Contact : <a href="mailto:atelier.kju@gmail.com">atelier.kju@gmail.com</a>
+    Contact : <a href="mailto:intertech.caju@gmail.com">intertech.caju@gmail.com</a>
     <br><br>
   `;
   const mainWrap = document.querySelector('.main-wrap');
